@@ -32,7 +32,7 @@
 #define TIMSK1 TIMSK
 #endif
 
-#define TIMER_INTERRUPT_DEBUG      1
+#define TIMER_INTERRUPT_DEBUG      0
 
 
 void TimerInterrupt::init(int8_t timer)
@@ -579,9 +579,11 @@ TimerInterrupt ITimer2(HW_TIMER_2);
 
 ISR(TIMER1_COMPA_vect)
 {
-  unsigned long countLocal = ITimer1.getCount();
-
-  Serial.println("ITimer1, count = " + String(ITimer1.getCount()));
+  long countLocal = ITimer1.getCount();
+  
+  #if (TIMER_INTERRUPT_DEBUG > 1)
+  Serial.println("T1 count = " + String(countLocal));
+  #endif
   
   if (ITimer1.getTimer() == 1)
   {
@@ -604,7 +606,7 @@ ISR(TIMER1_COMPA_vect)
 
 ISR(TIMER2_COMPA_vect)
 {
-  unsigned long countLocal = ITimer2.getCount();
+  long countLocal = ITimer2.getCount();
 
   #if (TIMER_INTERRUPT_DEBUG > 1)
   Serial.println("T2 count = " +String(countLocal));
@@ -638,7 +640,8 @@ TimerInterrupt ITimer5(HW_TIMER_5);
 
 ISR(TIMER3_COMPA_vect)
 {
-  unsigned long countLocal = ITimer3.getCount();
+  long countLocal = ITimer3.getCount();
+  
   if (ITimer3.getTimer() == 3)
   {
     if (countLocal != 0)
@@ -660,7 +663,8 @@ ISR(TIMER3_COMPA_vect)
 
 ISR(TIMER4_COMPA_vect)
 {
-  unsigned long countLocal = ITimer4.getCount();
+  long countLocal = ITimer4.getCount();
+  
   if (ITimer4.getTimer() == 4)
   {
     if (countLocal != 0)
@@ -682,7 +686,8 @@ ISR(TIMER4_COMPA_vect)
 
 ISR(TIMER5_COMPA_vect)
 {
-  unsigned long countLocal = ITimer5.getCount();
+  long countLocal = ITimer5.getCount();
+  
   if (ITimer5.getTimer() == 5)
   {
     if (countLocal != 0)
