@@ -34,7 +34,7 @@ https://www.arduino.cc/reference/en/language/functions/external-interrupts/attac
 
 ## More useful Information
 
-### From https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
+From https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
 
 1. Timer0:
 Timer0 is a 8bit timer.
