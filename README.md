@@ -4,19 +4,20 @@ This library enables you to use Interrupt from Hardware Timers on an Arduino, su
 
 Why do we need this Hardware Timer Interrupt?
 
-Imagine you have a system with a mission-critical function measuring water level and control the sump pump or more something much more important.
-You'd like to have a software timer to poll, or even place the function in loop(). But somehow, another function is blocking the loop() or setup().
+Imagine you have a system with a mission-critical function, measuring water level and control the sump pump or doing something much more important.
+You normally use a software timer to poll, or even place the function in loop(). But what if another function is blocking the loop() or setup().
+
 So your function might not be executed, and the result would be disastrous.
 
-You'd prefer to have your function called no matter what happening with other functions (busy loop, bug, etc.).
+You'd prefer to have your function called, no matter what happening with other functions (busy loop, bug, etc.).
 
 The correct choice is to use a Hardware Timer with Interrupt to call your function.
 
 These hardware timers, using interrupt, still works even if other functions is blocking. Moreover, they are much more precise (certainly depending on clock frequency accurary) than other software timers using millis() or micros(). That's necessary if you need to measure some data with better accuracy.
 
-Functions using normal software timers, relying on loop() and calling millis(), won't work if the loop() or setup() is blocked by certain operation.
+Functions using normal software timers, relying on loop() and calling millis(), won't work if the loop() or setup() is blocked by certain operation. For example, certain function is blocking while it's connecting to WiFi or some services.
 
-The catch is your function is now an ISR (Interrupt Service Routine), and must be lean and mean, and follow certain rules. More to read on
+The catch is your function is now part of an ISR (Interrupt Service Routine), and must be lean / mean, and follow certain rules. More to read on:
 
 https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
 
@@ -50,7 +51,6 @@ In the Arduino work the tone() function uses Timer2.
 4. Timer3, Timer4, Timer5:
 Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16bit timers.
 
-
 ## Supported Arduino Boards
 - Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
 - Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
@@ -59,7 +59,6 @@ Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16bi
 - ATmega8535, 16, 32, 164, 324, 644, 1284,
 - ATmega64, 128
 - ATtiny 84 / 85
-
 
 ## Usage
 
