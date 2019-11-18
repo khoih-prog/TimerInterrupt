@@ -420,7 +420,7 @@ class TimerInterrupt
   #endif  //#ifndef TIMER2_INSTANTIATED
 #endif    //#if USE_TIMER_2
 
-#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
 
   // Pre-instatiate
   #if USE_TIMER_3
