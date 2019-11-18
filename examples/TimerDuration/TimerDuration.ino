@@ -1,5 +1,5 @@
 /************************************************
- * TimerInterruptTest.ino
+ * TimerDuration.ino
  * For Arduino AVR boards
  * Written by Khoi Hoang
  * 
@@ -91,59 +91,21 @@ void setup()
    
   // Using ATmega328 used in UNO => 16MHz CPU clock , 
   
-  if (ITimer1.attachInterrupt(TIMER1_FREQUENCY, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
-  //if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
+  //if (ITimer1.attachInterrupt(TIMER1_FREQUENCY, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
+  if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
     Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
   else
     Serial.println("Can't set ITimer1. Select another freq., duration or timer");
     
   ITimer2.init();
       
-  if (ITimer2.attachInterrupt(TIMER2_FREQUENCY, TimerHandler2, outputPin2, TIMER2_DURATION_MS))
-  //if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2, outputPin2, TIMER2_DURATION_MS))
+  //if (ITimer2.attachInterrupt(TIMER2_FREQUENCY, TimerHandler2, outputPin2, TIMER2_DURATION_MS))
+  if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2, outputPin2, TIMER2_DURATION_MS))
     Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
   else
     Serial.println("Can't set ITimer2. Select another freq., duration or timer");    
 }
 
 void loop()
-{
-
-#if 0
-  static unsigned long lastTimer1 = 0;
-  static unsigned long lastTimer2 = 0;
-  
-  static bool timerPaused         = false;
-  static bool timerResumed        = false;
-  
-  if (millis() - lastTimer1 > TIMER1_DURATION_MS * 3)
-  {
-    if (millis() - lastTimer2 > TIMER2_DURATION_MS * 3)
-    {
-      lastTimer2 = millis();
-      Serial.println("Re-enable ITimer2, millis() = " + String(millis()));
-      ITimer2.reattachInterrupt(TIMER2_DURATION_MS);
-    }
-    
-    lastTimer1 = millis();
-    // try reinit timer
-    Serial.println("Re-enable ITimer1, millis() = " + String(millis()) + " count = " + String(ITimer1.getCount()));
-    ITimer1.reattachInterrupt(TIMER1_DURATION_MS);
-    timerPaused   = false;
-    timerResumed  = false;
-  }
-  else if ( !timerPaused && (millis() - lastTimer1 > TIMER1_DURATION_MS / 2) )
-  {
-    timerPaused = true;
-    Serial.println("Pause ITimer1, millis() = " + String(millis()) + " count = " + String(ITimer1.getCount()));
-    ITimer1.pauseTimer();
-  }
-  else if ( !timerResumed && (millis() - lastTimer1 > ( TIMER1_DURATION_MS * 3 ) / 2) )
-  {
-    timerResumed = true;
-    Serial.println("Resume ITimer1, millis() = " + String(millis()) + " count = " + String(ITimer1.getCount()));
-    ITimer1.resumeTimer();
-  }
-#endif
-  
+{  
 }

@@ -70,51 +70,71 @@ Timer3, Timer4 and Timer5 are supported for Arduino Maga boards.
 How to use:
 
 ```
+//These define's must be placed at the beginning before #include "TimerInterrupt.h"
+#define TIMER_INTERRUPT_DEBUG      0
+
+#define USE_TIMER_1     true
+#define USE_TIMER_2     true
+#define USE_TIMER_3     false
+#define USE_TIMER_4     false
+#define USE_TIMER_5     false
+
 #include "TimerInterrupt.h"
 
-#define TIMER1_DURATION_MS  5000L
-#define TIMER1_FREQUENCY    10
-#define TIMER1_INTERVAL_MS  (1000 / TIMER1_FREQUENCY)
-
-#define TIMER2_DURATION_MS  20000L
-#define TIMER2_FREQUENCY    100
-#define TIMER2_INTERVAL_MS  (1000 / TIMER2_FREQUENCY)
-
-void TimerHandler1()
+void TimerHandler1(void)
 {
-  // your readSensor() function will be called @ TIMER1_FREQUENCY = 10 Hz or every 100ms
-  // This uses hardware timer interrupt and still works even if other functions is blocking.
-  // Functions using normal software timers, relying on loop() and calling millis(), won't work
-  // if the loop() or setup() is blocked by certain operation.
-  readSensor();
+  static bool toggle1 = false;
+  static bool started = false;
+
+  if (!started)
+  {
+    started = true;
+    pinMode(LED_BUILTIN, OUTPUT);
+  }
+
+  //timer interrupt toggles pin LED_BUILTIN
+  digitalWrite(LED_BUILTIN, toggle1);
+  toggle1 = !toggle1;
 }
 
-void TimerHandler2()
+void TimerHandler2(void)
 {
-  // your_Function() will be called @ TIMER2_FREQUENCY = 100Hz or every 10ms.
-  your_Function();
+  static bool toggle2 = false;
+  static bool started = false;
+
+  if (!started)
+  {
+    started = true;
+    pinMode(A0, OUTPUT);
+  }
+  
+  //timer interrupt toggles outputPin
+  digitalWrite(A0, toggle2);
+  toggle2 = !toggle2;
 }
+
+#define TIMER1_INTERVAL_MS    1000
+
+#define TIMER2_INTERVAL_MS    2000
 
 void setup()
 {
   Serial.begin(115200);
-  
-  ...
-  
-  // Timer0 is used for micros(), millis(), delay(), etc and can't be used
+  Serial.println("\nStarting");
+
   // Select Timer 1-2 for UNO, 0-5 for MEGA
-  // Timer 2 is 8-bit timer, only for higher frequency  
+  // Timer 2 is 8-bit timer, only for higher frequency   
   ITimer1.init();
    
   // Using ATmega328 used in UNO => 16MHz CPU clock , 
-  // For 16-bit timer 1, 3, 4 and 5, set frequency from 0.2385 to some KHz
-  // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
-  if (ITimer1.attachInterrupt(TIMER1_FREQUENCY, TimerHandler1))
+  
+  if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
     Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
   else
     Serial.println("Can't set ITimer1. Select another freq. or timer");
-    
-  //Timer2
+
+  // Select Timer 1-2 for UNO, 0-5 for MEGA
+  // Timer 2 is 8-bit timer, only for higher frequency       
   ITimer2.init();
       
   if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
@@ -125,13 +145,26 @@ void setup()
 
 void loop()
 {
+  
 }
 
 ```
 ## TO DO
 
 1. Similar library for ESP8266 and ESP32
-2. Longer Interval for timers.
+
+
+## DONE
+
+For current version v1.0.1
+
+1. Longer Interval for timers.
+2. Reduce code size if use less timers. Eliminate compiler warnings.
+3. Now supporting complex object pointer-type argument.
+4. Fix some bugs in v1.0.0
+5. Add more examples.
+
+
 
 ## Contributing
 If you want to contribute to this project:

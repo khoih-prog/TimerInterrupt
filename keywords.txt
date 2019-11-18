@@ -5,6 +5,7 @@ ITimer3	KEYWORD2
 ITimer4	KEYWORD2
 ITimer5	KEYWORD2
 init	KEYWORD2
+set_OCR KEYWORD2
 callback	KEYWORD2
 setFrequency	KEYWORD2
 setInterval	KEYWORD2
@@ -21,3 +22,8 @@ restartTimer	KEYWORD2
 getTimer	KEYWORD2
 getCount	KEYWORD2
 setCount	KEYWORD2
+get_OCRValue  KEYWORD2
+get_OCRValueRemaining KEYWORD2
+adjust_OCRValue KEYWORD2
+reload_OCRValue KEYWORD2
+checkTimerDone  KEYWORD2

@@ -1,11 +1,11 @@
-/************************************************
+/*************************************************************************************
  * TimerInterrupt.cpp
  * For Arduino AVR boards
  * Written by Khoi Hoang
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/TimerInterrupt
  * Licensed under MIT license
- * Version: 1.0.0
+ * Version: 1.0.1
  * 
  * TCNTx - Timer/Counter Register. The actual timer value is stored here.
  * OCRx - Output Compare Register
@@ -16,24 +16,14 @@
  * Version Modified By   Date      Comments
  * ------- -----------  ---------- -----------
  *  1.0.0   K Hoang      13/11/2019 Initial coding
-*************************************************/
+ *  1.0.1   K Hoang      16/11/2019 Add long timer feature, clean up, higher accuracy
+****************************************************************************************/
 
 #include "TimerInterrupt.h"
 
-#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
-#define TCCR2A TCCR2
-#define TCCR2B TCCR2
-#define COM2A1 COM21
-#define COM2A0 COM20
-#define OCR2A OCR2
-#define TIMSK2 TIMSK
-#define OCIE2A OCIE2
-#define TIMER2_COMPA_vect TIMER2_COMP_vect
-#define TIMSK1 TIMSK
-#endif
-
+#ifndef TIMER_INTERRUPT_DEBUG
 #define TIMER_INTERRUPT_DEBUG      0
-
+#endif
 
 void TimerInterrupt::init(int8_t timer)
 {    
@@ -142,58 +132,188 @@ void TimerInterrupt::init(int8_t timer)
   
 }
 
+void TimerInterrupt::set_OCR()
+{
+  // Run with noInterrupt()
+  // Set the OCR for the given timer,
+  // set the toggle count,
+  // then turn on the interrupts
+  uint32_t _OCRValueToUse;
+  
+  switch (_timer)
+  {  
+    case 1:
+      _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
+      OCR1A = _OCRValueToUse;
+      _OCRValueRemaining -= _OCRValueToUse;
+      
+      #if defined(OCR1A) && defined(TIMSK1) && defined(OCIE1A)         
+        // Bit 1 – OCIEA: Output Compare A Match Interrupt Enable
+        // When this bit is written to '1', and the I-flag in the Status Register is set (interrupts globally enabled), the
+        // Timer/Counter Output Compare A Match interrupt is enabled. The corresponding Interrupt Vector is
+        // executed when the OCFA Flag, located in TIFR1, is set.
+        bitWrite(TIMSK1, OCIE1A, 1);
+      #elif defined(OCR1A) && defined(TIMSK) && defined(OCIE1A)
+        // this combination is for at least the ATmega32
+        bitWrite(TIMSK, OCIE1A, 1);
+      #endif
+      break;
+  
+    #if defined(OCR2A) && defined(TIMSK2) && defined(OCIE2A)
+    case 2:
+      _OCRValueToUse = min(MAX_COUNT_8BIT, _OCRValueRemaining);
+      OCR2A = _OCRValueToUse;
+      _OCRValueRemaining -= _OCRValueToUse;
+      
+      bitWrite(TIMSK2, OCIE2A, 1);
+      break;
+      #endif
+  
+    #if defined(OCR3A) && defined(TIMSK3) && defined(OCIE3A)
+    case 3:
+      _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
+      OCR3A = _OCRValueToUse;
+      _OCRValueRemaining -= _OCRValueToUse;
+      
+      bitWrite(TIMSK3, OCIE3A, 1);
+      break;
+      #endif
+  
+    #if defined(OCR4A) && defined(TIMSK4) && defined(OCIE4A)
+    case 4:
+      _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
+      OCR4A = _OCRValueToUse;
+      _OCRValueRemaining -= _OCRValueToUse;
+      
+      bitWrite(TIMSK4, OCIE4A, 1);
+      break;
+      #endif
+  
+    #if defined(OCR5A) && defined(TIMSK5) && defined(OCIE5A)
+    case 5:
+      _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
+      OCR5A = _OCRValueToUse;
+      _OCRValueRemaining -= _OCRValueToUse;
+      
+      bitWrite(TIMSK5, OCIE5A, 1);
+      break;
+      #endif
+  }
+
+  // Flag _OCRValue == 0 => end of long timer
+  if (_OCRValueRemaining == 0)
+    _timerDone = true;
+  
+}
+
 // frequency (in hertz) and duration (in milliseconds).
 // Return true if frequency is OK with selected timer (OCRValue is in range)
-bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, void* params, unsigned long duration)
+bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, uint32_t params, unsigned long duration)
 {
   uint8_t       andMask = 0b11111000;
   unsigned long OCRValue;
   bool isSuccess = false;
 
+  //frequencyLimit must > 1
+  float frequencyLimit = frequency * 17179.840;
 
-  if ((_timer <= 0) || (callback == NULL) )
+  // Limit frequency to larger than (0.00372529 / 64) Hz or interval 17179.840s / 17179840 ms to avoid uint32_t overflow
+  if ((_timer <= 0) || (callback == NULL) || ((frequencyLimit) < 1) )
   {
     return false;
   }
   else      
-  {           
-    //Timer0 and timer2 are 8 bit timers, meaning they can store a maximum counter value of 255.
-    //Timer2 does not have the option of 1024 prescaler, only 1, 8, 32, 64  
-    //Timer1 is a 16 bit timer, meaning it can store a maximum counter value of 65535.
+  {       
+    // Calculate the toggle count. Duration must be at least longer then one cycle
+    if (duration > 0)
+    {   
+      _toggle_count = frequency * duration / 1000;
 
-    //Use smallest prescaler first, then increase until fits (<255)
-    if (_timer != 2)
-    {
-      for (int prescalerIndex = NO_PRESCALER; prescalerIndex <= PRESCALER_1024; prescalerIndex++)
-      {
-        OCRValue = F_CPU / (frequency * prescalerDiv[prescalerIndex]) - 1;
-  
-        #if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("F_CPU = " + String(F_CPU) + ", preScalerDiv = " + String(prescalerDiv[prescalerIndex]));
-        Serial.println("OCR = " + String(OCRValue) + ", preScalerIndex = " + String(prescalerIndex));
-        #endif
-  
-        if ( OCRValue < 65535 )
-        {
-          _OCRValue       = OCRValue;
-          // same as prescalarbits
-          _prescalerIndex = prescalerIndex;
-  
-          #if (TIMER_INTERRUPT_DEBUG > 0)
-          Serial.println("OK => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDiv[prescalerIndex]));
+      #if (TIMER_INTERRUPT_DEBUG > 0)
+          Serial.println("setFrequency => _toggle_count = " + String(_toggle_count) + ", frequency = " + String(frequency) + ", duration = " + String(duration));
           #endif
-          
-          isSuccess = true;
-  
-          break;
-        }       
+           
+      if (_toggle_count < 1)
+      {
+        return false;
       }
     }
     else
     {
+      _toggle_count = -1;
+    }
+      
+    //Timer0 and timer2 are 8 bit timers, meaning they can store a maximum counter value of 255.
+    //Timer2 does not have the option of 1024 prescaler, only 1, 8, 32, 64  
+    //Timer1 is a 16 bit timer, meaning it can store a maximum counter value of 65535.
+    int prescalerIndexStart;
+    
+    //Use smallest prescaler first, then increase until fits (<255)
+    if (_timer != 2)
+    {     
+      if (frequencyLimit > 64)
+        prescalerIndexStart = NO_PRESCALER;        
+      else if (frequencyLimit > 8)
+        prescalerIndexStart = PRESCALER_8;
+      else
+        prescalerIndexStart = PRESCALER_64;
+
+        
+      for (int prescalerIndex = prescalerIndexStart; prescalerIndex <= PRESCALER_1024; prescalerIndex++)
+      {
+        OCRValue = F_CPU / (frequency * prescalerDiv[prescalerIndex]) - 1;
+  
+        #if (TIMER_INTERRUPT_DEBUG > 0)
+        Serial.println("Freq * 1000 = " + String(frequency * 1000));
+        Serial.println("F_CPU = " + String(F_CPU) + ", preScalerDiv = " + String(prescalerDiv[prescalerIndex]));
+        Serial.println("OCR = " + String(OCRValue) + ", preScalerIndex = " + String(prescalerIndex));
+        #endif
+
+        // We use very large _OCRValue now, and every time timer ISR activates, we deduct min(MAX_COUNT_16BIT, _OCRValueRemaining) from _OCRValueRemaining
+        // So that we can create very long timer, even if the counter is only 16-bit.
+        // Use very high frequency (OCRValue / MAX_COUNT_16BIT) around 64 * 1024 to achieve higher accuracy
+        if ( (OCRValue / MAX_COUNT_16BIT) < 16384 )
+        {
+          _OCRValue           = OCRValue;
+          _OCRValueRemaining  = OCRValue;
+          _prescalerIndex = prescalerIndex;
+  
+          #if (TIMER_INTERRUPT_DEBUG > 0)
+          Serial.println("OK in loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDiv[_prescalerIndex]));
+          #endif
+          
+          isSuccess = true;
+         
+          break;
+        }       
+      }
+
+      if (!isSuccess)
+      {
+        // Always do this
+        _OCRValue           = OCRValue;
+        _OCRValueRemaining  = OCRValue;
+        _prescalerIndex = PRESCALER_1024;
+  
+        #if (TIMER_INTERRUPT_DEBUG > 0)
+        Serial.println("OK out loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDiv[_prescalerIndex]));
+        #endif
+      }            
+    }
+    else
+    {
+      if (frequencyLimit > 64)
+        prescalerIndexStart = T2_NO_PRESCALER;        
+      else if (frequencyLimit > 8)
+        prescalerIndexStart = T2_PRESCALER_8;
+      else if (frequencyLimit > 2)
+        prescalerIndexStart = T2_PRESCALER_32;        
+      else
+        prescalerIndexStart = T2_PRESCALER_64;
+          
       // Page 206-207. ATmegal328
       //8-bit Timer2 has more options up to 1024 prescaler, from 1, 8, 32, 64, 128, 256 and 1024  
-      for (int prescalerIndex = T2_NO_PRESCALER; prescalerIndex <= T2_PRESCALER_1024; prescalerIndex++)
+      for (int prescalerIndex = prescalerIndexStart; prescalerIndex <= T2_PRESCALER_1024; prescalerIndex++)
       {
         OCRValue = F_CPU / (frequency * prescalerDivT2[prescalerIndex]) - 1;
   
@@ -201,137 +321,97 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, vo
         Serial.println("F_CPU = " + String(F_CPU) + ", preScalerDiv = " + String(prescalerDivT2[prescalerIndex]));
         Serial.println("OCR2 = " + String(OCRValue) + ", preScalerIndex = " + String(prescalerIndex));
         #endif
-  
-        if ( OCRValue < 255 )
+
+        // We use very large _OCRValue now, and every time timer ISR activates, we deduct min(MAX_COUNT_8BIT, _OCRValue) from _OCRValue
+        // to create very long timer, even if the counter is only 16-bit.
+        // Use very high frequency (OCRValue / MAX_COUNT_16BIT) around 64 * 1024 to achieve higher accuracy
+        if ( (OCRValue / MAX_COUNT_8BIT) < 16384 )
         {
-          _OCRValue       = OCRValue;
+          _OCRValue           = OCRValue;
+          _OCRValueRemaining  = OCRValue;
           // same as prescalarbits
           _prescalerIndex = prescalerIndex;
   
           #if (TIMER_INTERRUPT_DEBUG > 0)
-          Serial.println("OK => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDivT2[prescalerIndex]));
+          Serial.println("OK in loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDivT2[_prescalerIndex]));
           #endif
           
           isSuccess = true;
-  
+          
           break;
         }       
       }
+
+      if (!isSuccess)
+      {
+        // Always do this
+        _OCRValue           = OCRValue;
+        _OCRValueRemaining  = OCRValue;
+        // same as prescalarbits
+        _prescalerIndex = T2_PRESCALER_1024;
+  
+        #if (TIMER_INTERRUPT_DEBUG > 0)
+        Serial.println("OK out loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDivT2[_prescalerIndex]));
+        #endif
+      } 
     }
 
-    if (isSuccess)
+    //cli();//stop interrupts
+    noInterrupts();
+
+    _frequency = frequency;
+    _callback  = (void*) callback;
+    _params    = reinterpret_cast<void*>(params);
+
+    _timerDone = false;
+          
+    // 8 bit timers from here     
+    #if defined(TCCR2B)
+    if (_timer == 2)
     {
-      //cli();//stop interrupts
-      noInterrupts();
-
-      _frequency = frequency;
-      _callback  = (void*) callback;
-      _params    = params;
-            
-      // 8 bit timers from here     
-      #if defined(TCCR2B)
-      if (_timer == 2)
-      {
-        TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
-        #if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("TCCR2B = " + String(TCCR2B));
-        #endif
-      }
+      TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
+      #if (TIMER_INTERRUPT_DEBUG > 0)
+      Serial.println("TCCR2B = " + String(TCCR2B));
       #endif
-  
-      // 16 bit timers from here
-      #if defined(TCCR1B)
-      else if (_timer == 1)
-      {
-        TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-        #if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("TCCR1B = " + String(TCCR1B));
-        #endif
-        
-      }
-      #endif
-      
-      #if defined(TCCR3B)
-      else if (_timer == 3)
-        TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
-      #endif
-      
-      #if defined(TCCR4B)
-      else if (_timer == 4)
-        TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
-      #endif
-      
-      #if defined(TCCR5B)
-      else if (_timer == 5)
-        TCCR5B = (TCCR5B & andMask) | _prescalerIndex;   //prescalarbits;
-      #endif
-  
-      // Calculate the toggle count
-      if (duration > 0)
-      {
-        _toggle_count = _frequency * duration / 1000;
-      }
-      else
-      {
-        _toggle_count = -1;
-      }
-         
-      // Set the OCR for the given timer,
-      // set the toggle count,
-      // then turn on the interrupts
-      switch (_timer)
-      {  
-        case 1:
-          #if defined(OCR1A) && defined(TIMSK1) && defined(OCIE1A)
-          OCR1A = _OCRValue;
-          // Bit 1 – OCIEA: Output Compare A Match Interrupt Enable
-          // When this bit is written to '1', and the I-flag in the Status Register is set (interrupts globally enabled), the
-          // Timer/Counter Output Compare A Match interrupt is enabled. The corresponding Interrupt Vector is
-          // executed when the OCFA Flag, located in TIFR1, is set.
-          bitWrite(TIMSK1, OCIE1A, 1);
-          #elif defined(OCR1A) && defined(TIMSK) && defined(OCIE1A)
-          // this combination is for at least the ATmega32
-          OCR1A = _OCRValue;
-          bitWrite(TIMSK, OCIE1A, 1);
-          #endif
-          break;
-  
-        #if defined(OCR2A) && defined(TIMSK2) && defined(OCIE2A)
-        case 2:
-          OCR2A = _OCRValue;
-          bitWrite(TIMSK2, OCIE2A, 1);
-          break;
-          #endif
-  
-        #if defined(OCR3A) && defined(TIMSK3) && defined(OCIE3A)
-        case 3:
-          OCR3A = _OCRValue;
-          bitWrite(TIMSK3, OCIE3A, 1);
-          break;
-          #endif
-  
-        #if defined(OCR4A) && defined(TIMSK4) && defined(OCIE4A)
-        case 4:
-          OCR4A = _OCRValue;
-          bitWrite(TIMSK4, OCIE4A, 1);
-          break;
-          #endif
-  
-        #if defined(OCR5A) && defined(TIMSK5) && defined(OCIE5A)
-        case 5:
-          OCR5A = _OCRValue;
-          bitWrite(TIMSK5, OCIE5A, 1);
-          break;
-          #endif
-      }
-      
-      //sei();//allow interrupts
-      interrupts();
-
-      return true;
     }
+    #endif
 
-    return isSuccess;
+    // 16 bit timers from here
+    #if defined(TCCR1B)
+    else if (_timer == 1)
+    {
+      TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
+      #if (TIMER_INTERRUPT_DEBUG > 0)
+      Serial.println("TCCR1B = " + String(TCCR1B));
+      #endif
+      
+    }
+    #endif
+    
+    #if defined(TCCR3B)
+    else if (_timer == 3)
+      TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
+    #endif
+    
+    #if defined(TCCR4B)
+    else if (_timer == 4)
+      TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
+    #endif
+    
+    #if defined(TCCR5B)
+    else if (_timer == 5)
+      TCCR5B = (TCCR5B & andMask) | _prescalerIndex;   //prescalarbits;
+    #endif
+       
+    // Set the OCR for the given timer,
+    // set the toggle count,
+    // then turn on the interrupts     
+    set_OCR();
+    
+    //sei();//allow interrupts
+    interrupts();
+
+    return true;
   }
 }
 
@@ -505,8 +585,7 @@ void TimerInterrupt::pauseTimer(void)
     TCCR1B = (TCCR1B & andMask);
     #if (TIMER_INTERRUPT_DEBUG > 0)
     Serial.println("TCCR1B = " + String(TCCR1B));
-    #endif
-    
+    #endif    
   }
   #endif
   
@@ -550,8 +629,7 @@ void TimerInterrupt::resumeTimer(void)
     TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
     #if (TIMER_INTERRUPT_DEBUG > 0)
     Serial.println("TCCR1B = " + String(TCCR1B));
-    #endif
-    
+    #endif   
   }
   #endif
   
@@ -571,139 +649,3 @@ void TimerInterrupt::resumeTimer(void)
   #endif  
 }
 
-
-// Timer0 is used for micros(), millis(), delay(), etc and can't be used
-// Pre-instatiate
-TimerInterrupt ITimer1(HW_TIMER_1);
-TimerInterrupt ITimer2(HW_TIMER_2);
-
-ISR(TIMER1_COMPA_vect)
-{
-  long countLocal = ITimer1.getCount();
-  
-  #if (TIMER_INTERRUPT_DEBUG > 1)
-  Serial.println("T1 count = " + String(countLocal));
-  #endif
-  
-  if (ITimer1.getTimer() == 1)
-  {
-    if (countLocal != 0)
-    {
-      ITimer1.callback();
-      
-      if (countLocal > 0)
-        ITimer1.setCount(countLocal - 1);
-    }
-    else
-    {
-      #if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T1 done");
-      #endif
-      ITimer1.detachInterrupt();
-    }
-  }
-}
-
-ISR(TIMER2_COMPA_vect)
-{
-  long countLocal = ITimer2.getCount();
-
-  #if (TIMER_INTERRUPT_DEBUG > 1)
-  Serial.println("T2 count = " +String(countLocal));
-  #endif
-  
-  if (ITimer2.getTimer() == 2)
-  {
-    if (countLocal != 0)
-    {
-      ITimer2.callback();
-      
-      if (countLocal > 0)
-        ITimer2.setCount(countLocal - 1);
-    }
-    else
-    {
-      #if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T2 done");
-      #endif
-      ITimer2.detachInterrupt();
-    }
-  }
-}
-
-#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
-
-// Pre-instatiate
-TimerInterrupt ITimer3(HW_TIMER_3);
-TimerInterrupt ITimer4(HW_TIMER_4);
-TimerInterrupt ITimer5(HW_TIMER_5);
-
-ISR(TIMER3_COMPA_vect)
-{
-  long countLocal = ITimer3.getCount();
-  
-  if (ITimer3.getTimer() == 3)
-  {
-    if (countLocal != 0)
-    {
-      ITimer3.callback();
-      
-      if (countLocal > 0)
-        ITimer3.setCount(countLocal - 1);
-    }
-    else
-    {
-      #if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T3 done");
-      #endif
-      ITimer3.detachInterrupt();
-    }
-  }
-}
-
-ISR(TIMER4_COMPA_vect)
-{
-  long countLocal = ITimer4.getCount();
-  
-  if (ITimer4.getTimer() == 4)
-  {
-    if (countLocal != 0)
-    {
-      ITimer4.callback();
-      
-      if (countLocal > 0)
-        ITimer4.setCount(countLocal - 1);
-    }
-    else
-    {
-      #if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T4 done");
-      #endif
-      ITimer4.detachInterrupt();
-    }
-  }
-}
-
-ISR(TIMER5_COMPA_vect)
-{
-  long countLocal = ITimer5.getCount();
-  
-  if (ITimer5.getTimer() == 5)
-  {
-    if (countLocal != 0)
-    {
-      ITimer5.callback();
-      
-      if (countLocal > 0)
-        ITimer5.setCount(countLocal - 1);
-    }
-    else
-    {
-      #if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T5 done");
-      #endif
-      ITimer5.detachInterrupt();
-    }
-  }
-}
-#endif
