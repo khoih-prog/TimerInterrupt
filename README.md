@@ -27,7 +27,7 @@ https://www.arduino.cc/reference/en/language/functions/external-interrupts/attac
 2. Typically global variables are used to pass data between an ISR and the main program. To make sure variables shared between an ISR and the main program are updated correctly, declare them as volatile.
 
 ## Installation
-1. Navigate to (https://github.com/khoih-prog/TimerInterrupt/releases/tag/v1.0.0) page.
+1. Navigate to (https://github.com/khoih-prog/TimerInterrupt/releases) page.
 2. Download the latest release `TimerInterrupt-master.zip`.
 3. Extract the zip file to `TimerInterrupt-master` directory 
 4. Copy whole folder to Arduino libraries' directory such as `.Arduino/libraries/TimerInterrupt-master`.
