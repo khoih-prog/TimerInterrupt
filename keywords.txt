@@ -4,6 +4,7 @@ ITimer2	KEYWORD2
 ITimer3	KEYWORD2
 ITimer4	KEYWORD2
 ITimer5	KEYWORD2
+ISR_Timer KEYWORD2
 init	KEYWORD2
 set_OCR KEYWORD2
 callback	KEYWORD2
@@ -27,3 +28,16 @@ get_OCRValueRemaining KEYWORD2
 adjust_OCRValue KEYWORD2
 reload_OCRValue KEYWORD2
 checkTimerDone  KEYWORD2
+run KEYWORD2
+setTimeout  KEYWORD2
+setTimer  KEYWORD2
+changeInterval  KEYWORD2
+deleteTimer KEYWORD2
+isEnabled KEYWORD2
+enable  KEYWORD2
+disable KEYWORD2
+enableAll KEYWORD2
+disableAll  KEYWORD2
+toggle  KEYWORD2
+getNumTimers  KEYWORD2
+getNumAvailableTimers KEYWORD2

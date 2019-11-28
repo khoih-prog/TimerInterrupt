@@ -1,12 +1,18 @@
-/************************************************
- * SwitchDebounce.ino
+/**************************************************************************************************************************** 
+ * examples/SwitchDebounce.ino
  * For Arduino AVR boards
  * Written by Khoi Hoang
  * 
  * Built by Khoi Hoang https://github.com/khoih-prog/TimerInterrupt
  * Licensed under MIT license
- * Version: v1.0.1
+ * Version: v1.0.2
  * 
+ * Now we can use these new 16 ISR-based timers, while consuming only 1 hardware Timer.
+ * Their independently-selected, maximum interval is practically unlimited (limited only by unsigned long miliseconds)
+ * The accuracy is nearly perfect compared to software timers. The most important feature is they're ISR-based timers
+ * Therefore, their executions are not blocked by bad-behaving functions / tasks.
+ * This important feature is absolutely necessary for mission-critical tasks.
+ *  
  * Notes:
  * Special design is necessary to share data between interrupt code and the rest of your program.
  * Variables usually need to be "volatile" types. Volatile tells the compiler to avoid optimizations that assume 
@@ -17,13 +23,19 @@
  * If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled 
  * or the entire sequence of your code which accesses the data.
  *
- ************************************************/
-/* Switch Debouncing uses high frequency hardware timer 50Hz == 20ms) to measure the time from the SW is pressed, 
+* Version Modified By   Date      Comments
+ * ------- -----------  ---------- -----------
+ *  1.0.0   K Hoang      23/11/2019 Initial coding
+ *  1.0.1   K Hoang      25/11/2019 New release fixing compiler error
+ *  1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
+ *****************************************************************************************************************************/ 
+/**************************************************************************************************************************** 
+ * Switch Debouncing uses high frequency hardware timer 50Hz == 20ms) to measure the time from the SW is pressed, 
  * debouncing time is 100ms => SW is considered pressed if timer count is > 5, then call / flag SW is pressed
  * When the SW is released, timer will count (debounce) until more than 50ms until consider SW is released.
  * We can set to flag or call a function whenever SW is pressed more than certain predetermined time, even before 
  * SW is released.
-*/
+ *****************************************************************************************************************************/ 
 
 //These define's must be placed at the beginning before #include "TimerInterrupt.h"
 // Don't define TIMER_INTERRUPT_DEBUG > 2. Only for special ISR debugging only. Can hang the system.
