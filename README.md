@@ -1,8 +1,10 @@
-# Arduino TimerInterrupt Library (now included in Arduino Library Manager)
+## Arduino TimerInterrupt Library
 
-This library enables you to use Interrupt from Hardware Timers on an Arduino, such as Nano, UNO, Mega, etc.
+[![arduino-library-badge](https://www.ardu-badge.com/badge/TimerInterrupt.svg?)](https://www.ardu-badge.com/TimerInterrupt)
 
-Why do we need this Hardware Timer Interrupt?
+This library enables you to use Interrupt from `Hardware Timers` on an Arduino, such as `Nano, UNO, Mega`, etc.
+
+### Why do we need this Hardware Timer Interrupt?
 
 Imagine you have a system with a mission-critical function, measuring water level and control the sump pump or doing something much more important. You normally use a software timer to poll, or even place the function in loop(). But what if another function is blocking the loop() or setup().
 
@@ -25,7 +27,7 @@ https://www.arduino.cc/reference/en/language/functions/external-interrupts/attac
 
 2. Typically global variables are used to pass data between an ISR and the main program. To make sure variables shared between an ISR and the main program are updated correctly, declare them as volatile.
 
-## Installation
+### Installation
 1. Navigate to (https://github.com/khoih-prog/TimerInterrupt) page.
 2. Download the latest release `TimerInterrupt-master.zip`.
 3. Extract the zip file to `TimerInterrupt-master` directory 
@@ -33,7 +35,7 @@ https://www.arduino.cc/reference/en/language/functions/external-interrupts/attac
 
 You now can also use Arduino Library Manager to install. Search for `TimerInterrupt`.
 
-## More useful Information
+### More useful Information
 
 From https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
 
@@ -52,7 +54,7 @@ In the Arduino work the tone() function uses Timer2.
 4. Timer3, Timer4, Timer5:
 Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16bit timers.
 
-## New from v1.0.2
+### New from v1.0.2
 
 Now with these new `16 ISR-based timers`, the maximum interval is practically unlimited (limited only by unsigned long miliseconds)
 The accuracy is nearly perfect compared to software timers. The most important feature is they're ISR-based timers
@@ -67,7 +69,7 @@ This non-being-blocked important feature is absolutely necessary for mission-cri
 You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
 in loop(), using delay() function as an example. The elapsed time then is very unaccurate
 
-## Supported Arduino Boards
+### Supported Arduino Boards
 - Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
 - Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
 - Sanguino
@@ -76,7 +78,7 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 - ATmega64, 128
 - ATtiny 84 / 85
 
-## Usage
+### Usage
 
 Before using any Timer, you have to make sure the Timer has not been used by any other purpose.
 
@@ -165,13 +167,13 @@ void loop()
 }
 
 ```
-## TO DO
+### TO DO
 
 1. Similar library for ESP32
 2. Search for bug and improvement.
 
 
-## DONE
+### DONE
 
 For current version v1.0.2
 
@@ -183,12 +185,12 @@ For current version v1.0.2
 5. Add more examples.
 
 
-## Contributing
+### Contributing
 If you want to contribute to this project:
 - Report bugs and errors
 - Ask for enhancements
 - Create issues and pull requests
 - Tell other people about this library
 
-## Copyright
+### Copyright
 Copyright 2019- Khoi Hoang
