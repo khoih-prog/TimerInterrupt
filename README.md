@@ -20,7 +20,7 @@ Functions using normal software timers, relying on loop() and calling millis(), 
 
 The catch is your function is now part of an ISR (Interrupt Service Routine), and must be lean / mean, and follow certain rules. More to read on:
 
-[Attach Interrupt]https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
+[Attach Interrupt](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)
 
 **Important Notes:**
 1. Inside the attached function, delay() won’t work and the value returned by millis() will not increment. Serial data received while in the function may be lost. You should declare as volatile any variables that you modify within the attached function.
