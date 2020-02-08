@@ -20,7 +20,7 @@ Functions using normal software timers, relying on loop() and calling millis(), 
 
 The catch is your function is now part of an ISR (Interrupt Service Routine), and must be lean / mean, and follow certain rules. More to read on:
 
-https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
+[Attach Interrupt]https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/
 
 **Important Notes:**
 1. Inside the attached function, delay() won’t work and the value returned by millis() will not increment. Serial data received while in the function may be lost. You should declare as volatile any variables that you modify within the attached function.
@@ -28,30 +28,36 @@ https://www.arduino.cc/reference/en/language/functions/external-interrupts/attac
 2. Typically global variables are used to pass data between an ISR and the main program. To make sure variables shared between an ISR and the main program are updated correctly, declare them as volatile.
 
 ### Installation
-1. Navigate to (https://github.com/khoih-prog/TimerInterrupt) page.
+
+#### Use Arduino Library Manager
+The suggested and easiest way is to use `Arduino Library Manager`. Search for `TimerInterrupt`, then select / install the latest version.
+
+#### Manual Install
+
+The suggested way to install manually is to:
+
+1. Navigate to [TimerInterrupt](https://github.com/khoih-prog/TimerInterrupt) page.
 2. Download the latest release `TimerInterrupt-master.zip`.
 3. Extract the zip file to `TimerInterrupt-master` directory 
 4. Copy whole folder to Arduino libraries' directory such as `.Arduino/libraries/TimerInterrupt-master`.
 
-You now can also use Arduino Library Manager to install. Search for `TimerInterrupt`.
-
 ### More useful Information
 
-From https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072
+From [Arduino-101 Timers and Interrupts](https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072)
 
-1. Timer0:
+1. `Timer0:`
 Timer0 is a 8bit timer.
 In the Arduino world timer0 is been used for the timer functions, like delay(), millis() and micros(). If you change Timer0 registers, this may influence the Arduino timer function. So you should know what you are doing.
 
-2. Timer1:
+2. `Timer1:`
 Timer1 is a 16bit timer.
 In the Arduino world the Servo library uses timer1 on Arduino Uno (Timer5 on Arduino Mega).
 
-3. Timer2:
+3. `Timer2:`
 Timer2 is a 8bit timer like Timer0.
 In the Arduino work the tone() function uses Timer2.
 
-4. Timer3, Timer4, Timer5:
+4. `Timer3, Timer4, Timer5:`
 Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16bit timers.
 
 ### New from v1.0.2
