@@ -46,19 +46,23 @@ The suggested way to install manually is to:
 From [Arduino-101 Timers and Interrupts](https://www.robotshop.com/community/forum/t/arduino-101-timers-and-interrupts/13072)
 
 1. `Timer0:`
+
 Timer0 is a 8bit timer.
 In the Arduino world timer0 is been used for the timer functions, like delay(), millis() and micros(). If you change Timer0 registers, this may influence the Arduino timer function. So you should know what you are doing.
 
 2. `Timer1:`
+
 Timer1 is a 16bit timer.
 In the Arduino world the Servo library uses timer1 on Arduino Uno (Timer5 on Arduino Mega).
 
 3. `Timer2:`
+
 Timer2 is a 8bit timer like Timer0.
 In the Arduino work the tone() function uses Timer2.
 
 4. `Timer3, Timer4, Timer5:`
-Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16bit timers.
+
+Timer3, Timer4 and Timer 5 are only available on Arduino Mega boards. These timers are all 16bit timers.
 
 ### New from v1.0.2
 
@@ -175,8 +179,7 @@ void loop()
 ```
 ### TO DO
 
-1. Similar library for ESP32
-2. Search for bug and improvement.
+1. Search for bug and improvement.
 
 
 ### DONE
@@ -189,6 +192,7 @@ For current version v1.0.2
 3. 16 hardware-initiated software-enabled timers while using only 1 hardware timer.
 4. Fix some bugs in v1.0.0
 5. Add more examples.
+6. Similar library for ESP32
 
 
 ### Contributing
