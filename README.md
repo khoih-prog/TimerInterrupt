@@ -39,7 +39,7 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 
 ---
----,
+---
 
 ## Prerequisite
 1. [`Arduino IDE 1.8.12+` for Arduino](https://www.arduino.cc/en/Main/Software)
@@ -134,6 +134,7 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 Before using any Timer, you have to make sure the **Timer has not been used by any other purpose.**
 
 Only Timer1 and Timer2 are supported for Nano, UNO, etc. boards possessing 3 timers.
+
 Timer3, Timer4 and Timer5 are only available for Arduino Mega boards.
 
 ---
