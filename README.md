@@ -1,4 +1,4 @@
-# Arduino TimerInterrupt Library (now included in Arduino Library Manager)
+## TimerInterrupt Library
 
 [![arduino-library-badge](https://www.ardu-badge.com/badge/TimerInterrupt.svg?)](https://www.ardu-badge.com/TimerInterrupt)
 [![GitHub release](https://img.shields.io/github/release/khoih-prog/TimerInterrupt.svg)](https://github.com/khoih-prog/TimerInterrupt/releases)
@@ -29,7 +29,7 @@ Functions using normal software timers, relying on loop() and calling millis(), 
 
 The catch is your function is now part of an ISR (Interrupt Service Routine), and must be lean / mean, and follow certain rules. More to read on:
 
-[HOWTO Attach Interrupt](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)
+[**HOWTO Attach Interrupt**](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)
 
 ---
 
@@ -378,7 +378,7 @@ For current version v1.0.2
 
 ---
 
-### Issues ###
+## Issues ###
 
 Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInterrupt/issues)
 
@@ -393,7 +393,7 @@ If you want to contribute to this project:
 
 ---
 
-### License and credits ###
+## License and credits
 
 - The library is licensed under [MIT](https://github.com/khoih-prog/TimerInterrupt/blob/master/LICENSE)
 
