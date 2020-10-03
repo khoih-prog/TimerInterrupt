@@ -1,16 +1,32 @@
 {
   "name": "TimerInterrupt",
+  "version": "1.0.2",
   "keywords": "timer,interrupt,hardware",
-  "description": "Library for Arduino built-in Hardware Timers",
+  "description": "This library enables you to use Interrupt from Hardware Timers on an Arduino, such as Nano, UNO, Mega, Teensy, etc. It now supports 16 ISR-based timers, while consuming only 1 hardware Timer. Timers' interval is very long (ulong millisecs). The most important feature is they're ISR-based timers. Therefore, their executions are not blocked by bad-behaving functions or tasks. This important feature is absolutely necessary for mission-critical tasks.",
+  "authors":
+  {
+    "name":  "Khoi Hoang",
+    "url":   "https://github.com/khoih-prog",
+    "maintainer": true
+  },  
   "repository":
   {
     "type": "git",
     "url": "//https://github.com/khoih-prog/TimerInterrupt"
   },
+  "homepage": "https://github.com/khoih-prog/TimerInterrupt",
+  "export": {
+    "exclude": [
+      "linux",
+      "extras",
+      "tests"
+    ]
+  },  
   "frameworks": "arduino",
   "platforms":
   [
     "atmelavr",
     "teensy"
-  ]
+  ],
+  "examples": "examples/*/*/*.ino"
 }

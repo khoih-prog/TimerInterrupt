@@ -5,6 +5,8 @@
 [![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/khoih-prog/TimerInterrupt/blob/master/LICENSE)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](#Contributing)
 [![GitHub issues](https://img.shields.io/github/issues/khoih-prog/TimerInterrupt.svg)](http://github.com/khoih-prog/TimerInterrupt/issues)
+[![star this repo](https://githubbadges.com/star.svg?user=khoih-prog&repo=TimerInterrupt)](https://github.com/khoih-prog/TimerInterrupt)
+[![fork this repo](https://githubbadges.com/fork.svg?user=khoih-prog&repo=TimerInterrupt)](https://github.com/khoih-prog/TimerInterrupt/fork)
 
 ---
 ---
@@ -42,7 +44,8 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 ---
 
 ## Prerequisite
-1. [`Arduino IDE 1.8.12+` for Arduino](https://www.arduino.cc/en/Main/Software)
+
+1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
 2. [`Arduino AVR core 1.8.3+`](https://github.com/arduino/ArduinoCore-avr) for Arduino AVR boards. Use Arduino Board Manager to install.
 3. [`Teensy core 1.53+`](https://www.pjrc.com/teensy/td_download.html) for Teensy (3.1, 3.0, LC, 2.0) boards.
 
@@ -52,22 +55,23 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 ## Installation
 
 ### Use Arduino Library Manager
-The best and easiest way is to use `Arduino Library Manager`. Search for `TimerInterrupt`, then select / install the latest version.
+The best and easiest way is to use `Arduino Library Manager`. Search for [**TimerInterrupt**](https://github.com/khoih-prog/TimerInterrupt), then select / install the latest version.
 You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/badge/TimerInterrupt.svg?)](https://www.ardu-badge.com/TimerInterrupt) for more detailed instructions.
 
 ### Manual Install
 
 Another way to install is to:
 
-1. Navigate to [TimerInterrupt](https://github.com/khoih-prog/TimerInterrupt) page.
+1. Navigate to [**TimerInterrupt**](https://github.com/khoih-prog/TimerInterrupt) page.
 2. Download the latest release `TimerInterrupt-master.zip`.
 3. Extract the zip file to `TimerInterrupt-master` directory 
 4. Copy whole `TimerInterrupt-master` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
 
 ### VS Code & PlatformIO:
+
 1. Install [VS Code](https://code.visualstudio.com/)
 2. Install [PlatformIO](https://platformio.org/platformio-ide)
-3. Install **TimerInterrupt** library by using [Library Manager](https://docs.platformio.org/en/latest/librarymanager/). Search for TimerInterrupt in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
+3. Install [**TimerInterrupt** library](https://platformio.org/lib/show/6857/TimerInterrupt) by using [Library Manager](https://platformio.org/lib/show/6857/TimerInterrupt/installation). Search for TimerInterrupt in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
 4. Use included [platformio.ini](platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically. Please visit documentation for the other options and examples at [Project Configuration File](https://docs.platformio.org/page/projectconf.html)
 
 ---
@@ -323,6 +327,36 @@ void loop()
 ```
 
 ---
+---
+
+## Release v1.0.2
+
+Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds)
+**The accuracy is nearly perfect** compared to software timers. The most important feature is they're ISR-based timers
+Therefore, their executions are **not blocked by bad-behaving functions / tasks**. This important feature is absolutely necessary for mission-critical tasks. 
+
+The [**ISR_Timer_Complex**](examples/ISR_Timer_Complex) example will demonstrate the nearly perfect accuracy compared to software timers by printing the actual elapsed millisecs of each type of timers.
+Being ISR-based timers, their executions are not blocked by bad-behaving functions / tasks, such as connecting to WiFi, Internet and Blynk services. You can also have many `(up to 16)` timers to use.
+
+This non-being-blocked important feature is absolutely necessary for mission-critical tasks.
+
+You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
+in loop(), using delay() function as an example. The elapsed time then is very unaccurate
+
+---
+
+## Supported Arduino Boards
+
+- Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
+- Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
+- Sanguino
+- ATmega8, 48, 88, 168, 328
+- ATmega8535, 16, 32, 164, 324, 644, 1284,
+- ATmega64, 128
+- ATtiny 84 / 85
+
+---
+
 
 ## TO DO
 
@@ -356,6 +390,12 @@ If you want to contribute to this project:
 - Ask for enhancements
 - Create issues and pull requests
 - Tell other people about this library
+
+---
+
+### License and credits ###
+
+- The library is licensed under [MIT](https://github.com/khoih-prog/TimerInterrupt/blob/master/LICENSE)
 
 ---
 
