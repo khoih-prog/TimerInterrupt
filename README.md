@@ -47,7 +47,7 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 ### Release v1.0.3
 
-1. 1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
+1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
 
 ### Release v1.0.2
 
@@ -582,9 +582,9 @@ Timer : 15, programmed : 80000, actual : 80009
 
 ### Release v1.0.3
 
-1. 1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
+1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
 
-## Release v1.0.2
+### Release v1.0.2
 
 Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds)
 **The accuracy is nearly perfect** compared to software timers. The most important feature is they're ISR-based timers
@@ -600,7 +600,7 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 
 ---
 
-## Supported Arduino Boards
+### Supported Arduino Boards
 
 - Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
 - Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
@@ -611,14 +611,20 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 - ATtiny 84 / 85
 
 ---
+---
 
+### Issues ###
 
-## TO DO
+Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInterrupt/issues)
+
+---
+
+### TO DO
 
 1. Search for bug and improvement.
 
 
-## DONE
+### DONE
 
 For current version v1.0.2
 
@@ -630,15 +636,18 @@ For current version v1.0.2
 5. Add more examples.
 6. Similar library for ESP32, ESP8266, SAMD21/SAMD51, nRF52, Mbed-OS Nano-33-BLE, STM32
 
+
+---
 ---
 
-## Issues ###
+### Contributions and Thanks
 
-Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInterrupt/issues)
+Many thanks for everyone for bug reporting, new feature suggesting, testing and contributing to the development of this library.
 
 ---
 
 ## Contributing
+
 If you want to contribute to this project:
 - Report bugs and errors
 - Ask for enhancements
@@ -654,4 +663,7 @@ If you want to contribute to this project:
 ---
 
 ## Copyright
+
 Copyright 2019- Khoi Hoang
+
+
