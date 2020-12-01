@@ -1,29 +1,31 @@
 /****************************************************************************************************************************
-   TimerInterrupt.cpp
-   For Arduino AVR boards
-   Written by Khoi Hoang
+  TimerInterrupt.cpp
+  For Arduino boards (UNO, Nano, Mega, etc. )
+  Written by Khoi Hoang
 
-   Built by Khoi Hoang https://github.com/khoih-prog/TimerInterrupt
-   Licensed under MIT license
-   Version: 1.0.2
+  Built by Khoi Hoang https://github.com/khoih-prog/TimerInterrupt
+  Licensed under MIT license
 
-   TCNTx - Timer/Counter Register. The actual timer value is stored here.
-   OCRx - Output Compare Register
-   ICRx - Input Capture Register (only for 16bit timer)
-   TIMSKx - Timer/Counter Interrupt Mask Register. To enable/disable timer interrupts.
-   TIFRx - Timer/Counter Interrupt Flag Register. Indicates a pending timer interrupt.
+  TCNTx - Timer/Counter Register. The actual timer value is stored here.
+  OCRx - Output Compare Register
+  ICRx - Input Capture Register (only for 16bit timer)
+  TIMSKx - Timer/Counter Interrupt Mask Register. To enable/disable timer interrupts.
+  TIFRx - Timer/Counter Interrupt Flag Register. Indicates a pending timer interrupt.
 
-   Now with we can use these new 16 ISR-based timers, while consuming only 1 hwarware Timer.
-   Their independently-selected, maximum interval is practically unlimited (limited only by unsigned long miliseconds)
-   The accuracy is nearly perfect compared to software timers. The most important feature is they're ISR-based timers
-   Therefore, their executions are not blocked by bad-behaving functions / tasks.
-   This important feature is absolutely necessary for mission-critical tasks.
+  Now with we can use these new 16 ISR-based timers, while consuming only 1 hwarware Timer.
+  Their independently-selected, maximum interval is practically unlimited (limited only by unsigned long miliseconds)
+  The accuracy is nearly perfect compared to software timers. The most important feature is they're ISR-based timers
+  Therefore, their executions are not blocked by bad-behaving functions / tasks.
+  This important feature is absolutely necessary for mission-critical tasks.
 
-   Version Modified By   Date      Comments
-   ------- -----------  ---------- -----------
-    1.0.0   K Hoang      13/11/2019 Initial coding
-    1.0.1   K Hoang      16/11/2019 Add long timer feature, clean up, higher accuracy
-    1.0.2   K Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
+  Version: 1.0.3
+
+  Version Modified By   Date      Comments
+  ------- -----------  ---------- -----------
+  1.0.0   K Hoang      23/11/2019 Initial coding
+  1.0.1   K Hoang      25/11/2019 New release fixing compiler error
+  1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
+  1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
 ****************************************************************************************************************************/
 
 #include "TimerInterrupt.h"

@@ -1,37 +1,31 @@
 /****************************************************************************************************************************
-   ISR_Timer.cpp
-   For Arduino boards (UNO, Nano, Mega, etc. )
-   Written by Khoi Hoang
+  ISR_Timer.cpp
+  For Arduino boards (UNO, Nano, Mega, etc. )
+  Written by Khoi Hoang
 
-   Built by Khoi Hoang https://github.com/khoih-prog/TimerInterrupt
-   Licensed under MIT license
-   Version: v1.0.2
+  Built by Khoi Hoang https://github.com/khoih-prog/TimerInterrupt
+  Licensed under MIT license
 
-   Timer0: Timer0 is a 8bit timer. In the Arduino world timer0 is been used for the timer functions, like delay(), millis()
-   and micros().
-   If you change Timer0 registers, this may influence the Arduino timer function. So you should know what you are doing.
-   Timer1: Timer1 is a 16bit timer. In the Arduino world the Servo library uses timer1 on Arduino Uno (Timer5 on Arduino Mega).
-   Timer2: Timer2 is a 8bit timer like Timer0. In the Arduino work the tone() function uses Timer2.
-   Timer3, Timer4, Timer5: Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16bit timers.
+  TCNTx - Timer/Counter Register. The actual timer value is stored here.
+  OCRx - Output Compare Register
+  ICRx - Input Capture Register (only for 16bit timer)
+  TIMSKx - Timer/Counter Interrupt Mask Register. To enable/disable timer interrupts.
+  TIFRx - Timer/Counter Interrupt Flag Register. Indicates a pending timer interrupt.
 
-   Now we can use these new 16 ISR-based timers, while consuming only 1 hardware Timer.
-   Their independently-selected, maximum interval is practically unlimited (limited only by unsigned long miliseconds)
-   The accuracy is nearly perfect compared to software timers. The most important feature is they're ISR-based timers
-   Therefore, their executions are not blocked by bad-behaving functions / tasks.
-   This important feature is absolutely necessary for mission-critical tasks.
+  Now with we can use these new 16 ISR-based timers, while consuming only 1 hwarware Timer.
+  Their independently-selected, maximum interval is practically unlimited (limited only by unsigned long miliseconds)
+  The accuracy is nearly perfect compared to software timers. The most important feature is they're ISR-based timers
+  Therefore, their executions are not blocked by bad-behaving functions / tasks.
+  This important feature is absolutely necessary for mission-critical tasks.
 
-   Based on SimpleTimer - A timer library for Arduino.
-   Author: mromani@ottotecnica.com
-   Copyright (c) 2010 OTTOTECNICA Italy
+  Version: 1.0.3
 
-   Based on BlynkTimer.h
-   Author: Volodymyr Shymanskyy
-
-   Version Modified By   Date      Comments
-   ------- -----------  ---------- -----------
-    1.0.0   K Hoang      23/11/2019 Initial coding
-    1.0.1   K Hoang      25/11/2019 New release fixing compiler error
-    1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
+  Version Modified By   Date      Comments
+  ------- -----------  ---------- -----------
+  1.0.0   K Hoang      23/11/2019 Initial coding
+  1.0.1   K Hoang      25/11/2019 New release fixing compiler error
+  1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
+  1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
 *****************************************************************************************************************************/
 
 #include "ISR_Timer.h"

@@ -1,10 +1,21 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
 TimerInterrupt	KEYWORD1
-ITimer1	KEYWORD2
-ITimer2	KEYWORD2
-ITimer3	KEYWORD2
-ITimer4	KEYWORD2
-ITimer5	KEYWORD2
-ISR_Timer KEYWORD2
+
+ITimer1	KEYWORD1
+ITimer2	KEYWORD1
+ITimer3	KEYWORD1
+ITimer4	KEYWORD1
+ITimer5	KEYWORD1
+
+ISR_Timer KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
 init	KEYWORD2
 set_OCR KEYWORD2
 callback	KEYWORD2
