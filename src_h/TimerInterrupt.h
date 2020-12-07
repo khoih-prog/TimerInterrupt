@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.1.0
+  Version: 1.1.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -42,7 +42,7 @@
 #error This code is designed to run on Arduino AVR (Nano, UNO, Mega, etc.) platform, not ESP8266 nor ESP32! Please check your Tools->Board setting.
 #endif
 
-#define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.0"
+#define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.1"
 
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
