@@ -22,14 +22,15 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
   
-  Version: 1.0.3
-  
+  Version: 1.1.0
+
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
   1.0.0   K Hoang      23/11/2019 Initial coding
   1.0.1   K Hoang      25/11/2019 New release fixing compiler error
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
+  1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
  *****************************************************************************************************************************/
 //These define's must be placed at the beginning before #include "TimerInterrupt.h"
 #define TIMER_INTERRUPT_DEBUG      0
@@ -84,7 +85,7 @@ void setup()
   while (!Serial);
 
   Serial.println("\nStarting Argument_None");
-  Serial.println("Version : " + String(TIMER_INTERRUPT_VERSION));
+  Serial.println(TIMER_INTERRUPT_VERSION);
   Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
 
   // Select Timer 1-2 for UNO, 0-5 for MEGA

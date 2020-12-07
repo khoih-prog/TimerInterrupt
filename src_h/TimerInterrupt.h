@@ -42,7 +42,7 @@
 #error This code is designed to run on Arduino AVR (Nano, UNO, Mega, etc.) platform, not ESP8266 nor ESP32! Please check your Tools->Board setting.
 #endif
 
-#define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.1"
+#define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.0"
 
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>

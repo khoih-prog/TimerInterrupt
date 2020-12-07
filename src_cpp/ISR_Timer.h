@@ -29,7 +29,6 @@
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
 *****************************************************************************************************************************/
 
-#pragma once
 
 #ifndef ISR_TIMER_H
 #define ISR_TIMER_H
@@ -163,7 +162,5 @@ class ISR_Timer {
     // actual number of timers in use (-1 means uninitialized)
     volatile int numTimers;
 };
-
-#include "ISR_Timer-Impl.h"
 
 #endif

@@ -45,6 +45,12 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 ---
 ---
 
+### Releases v1.1.1
+
+1. Add example [**Change_Interval**](examples/Change_Interval)
+2. Bump up version to sync with other TimerInterrupt Libraries. Modify Version String.
+3. Add new h-only code besides conventional h/cpp code
+
 ### Release v1.0.3
 
 1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
@@ -91,6 +97,7 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 ## Installation
 
 ### Use Arduino Library Manager
+
 The best and easiest way is to use `Arduino Library Manager`. Search for [**TimerInterrupt**](https://github.com/khoih-prog/TimerInterrupt), then select / install the latest version.
 You can also use this link [![arduino-library-badge](https://www.ardu-badge.com/badge/TimerInterrupt.svg?)](https://www.ardu-badge.com/TimerInterrupt) for more detailed instructions.
 
@@ -107,8 +114,32 @@ Another way to install is to:
 
 1. Install [VS Code](https://code.visualstudio.com/)
 2. Install [PlatformIO](https://platformio.org/platformio-ide)
-3. Install [**TimerInterrupt** library](https://platformio.org/lib/show/6857/TimerInterrupt) by using [Library Manager](https://platformio.org/lib/show/6857/TimerInterrupt/installation). Search for TimerInterrupt in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
+3. Install [**TimerInterrupt** library](https://platformio.org/lib/show/11520/TimerInterrupt) or [**TimerInterrupt** library](https://platformio.org/lib/show/6857/TimerInterrupt) by using [Library Manager](https://platformio.org/lib/show/11520/TimerInterrupt/installation). Search for TimerInterrupt in [Platform.io Author's Libraries](https://platformio.org/lib/search?query=author:%22Khoi%20Hoang%22)
 4. Use included [platformio.ini](platformio/platformio.ini) file from examples to ensure that all dependent libraries will installed automatically. Please visit documentation for the other options and examples at [Project Configuration File](https://docs.platformio.org/page/projectconf.html)
+
+---
+---
+
+### HOWTO Fix `Multiple Definitions` Linker Error
+
+The current library implementation, using **xyz-Impl.h instead of standard xyz.cpp**, possibly creates certain `Multiple Definitions` Linker error in certain use cases. Although it's simple to just modify several lines of code, either in the library or in the application, the library is adding 2 more source directories
+
+1. **scr_h** for new h-only files
+2. **src_cpp** for standard h/cpp files
+
+besides the standard **src** directory.
+
+To use the **old standard cpp** way, locate this library' directory, then just 
+
+1. **Delete the all the files in src directory.**
+2. **Copy all the files in src_cpp directory into src.**
+3. Close then reopen the application code in Arduino IDE, etc. to recompile from scratch.
+
+To re-use the **new h-only** way, just 
+
+1. **Delete the all the files in src directory.**
+2. **Copy the files in src_h directory into src.**
+3. Close then reopen the application code in Arduino IDE, etc. to recompile from scratch.
 
 ---
 ---
@@ -282,10 +313,11 @@ void loop()
 12. [TimerInterruptTest](examples/TimerInterruptTest)
 13. [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex). New.
 14. [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple). New.
+15. [**Change_Interval**](examples/Change_Interval). New.
 
 ---
 
-### Example [ISR_Timers_Array_Simple](examples/ISR_Timers_Array_Simple)
+### Example [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex)
 
 ```cpp
 #define TIMER_INTERRUPT_DEBUG      0
@@ -301,26 +333,19 @@ void loop()
 
 #include <SimpleTimer.h>              // https://github.com/schinken/SimpleTimer
 
-ISR_Timer ISR_Timer2;
-
 #ifndef LED_BUILTIN
   #define LED_BUILTIN       13
 #endif
+
+ISR_Timer ISR_Timer2;
 
 #define LED_TOGGLE_INTERVAL_MS        1000L
 
 // You have to use longer time here if having problem because Arduino AVR clock is low, 16MHz => lower accuracy.
 // Tested OK with 1ms when not much load => higher accuracy.
-#define TIMER2_INTERVAL_MS            1L
+#define TIMER2_INTERVAL_MS            5L
 
 volatile uint32_t startMillis = 0;
-
-volatile uint32_t deltaMillis2s = 0;
-volatile uint32_t deltaMillis5s = 0;
-
-volatile uint32_t previousMillis2s = 0;
-volatile uint32_t previousMillis5s = 0;
-
 
 void TimerHandler2()
 {
@@ -340,23 +365,183 @@ void TimerHandler2()
   }
 }
 
-void doingSomething2s()
-{
-  unsigned long currentMillis  = millis();
+/////////////////////////////////////////////////
 
-  deltaMillis2s    = currentMillis - previousMillis2s;
-  previousMillis2s = currentMillis;
-}
+#define NUMBER_ISR_TIMERS         16
 
-void doingSomething5s()
-{
-  unsigned long currentMillis  = millis();
-
-  deltaMillis5s    = currentMillis - previousMillis5s;
-  previousMillis5s = currentMillis;
-}
+typedef void (*irqCallback)  (void);
 
 /////////////////////////////////////////////////
+
+#define USE_COMPLEX_STRUCT      true
+
+#if USE_COMPLEX_STRUCT
+
+  typedef struct 
+  {
+    irqCallback   irqCallbackFunc;
+    uint32_t      TimerInterval;
+    unsigned long deltaMillis;
+    unsigned long previousMillis;
+  } ISRTimerData;
+  
+  // In NRF52, avoid doing something fancy in ISR, for example Serial.print()
+  // The pure simple Serial.prints here are just for demonstration and testing. Must be eliminate in working environment
+  // Or you can get this run-time error / crash
+  
+  void doingSomething(int index);
+
+#else
+
+  volatile unsigned long deltaMillis    [NUMBER_ISR_TIMERS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  volatile unsigned long previousMillis [NUMBER_ISR_TIMERS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  
+  // You can assign any interval for any timer here, in milliseconds
+  uint32_t TimerInterval[NUMBER_ISR_TIMERS] =
+  {
+    5000L,  10000L,  15000L,  20000L,  25000L,  30000L,  35000L,  40000L,
+    45000L, 50000L,  55000L,  60000L,  65000L,  70000L,  75000L,  80000L
+  };
+  
+  void doingSomething(int index)
+  {
+    unsigned long currentMillis  = millis();
+    
+    deltaMillis[index]    = currentMillis - previousMillis[index];
+    previousMillis[index] = currentMillis;
+  }
+
+#endif
+
+////////////////////////////////////
+// Shared
+////////////////////////////////////
+
+void doingSomething0()
+{
+  doingSomething(0);
+}
+
+void doingSomething1()
+{
+  doingSomething(1);
+}
+
+void doingSomething2()
+{
+  doingSomething(2);
+}
+
+void doingSomething3()
+{
+  doingSomething(3);
+}
+
+void doingSomething4()
+{
+  doingSomething(4);
+}
+
+void doingSomething5()
+{
+  doingSomething(5);
+}
+
+void doingSomething6()
+{
+  doingSomething(6);
+}
+
+void doingSomething7()
+{
+  doingSomething(7);
+}
+
+void doingSomething8()
+{
+  doingSomething(8);
+}
+
+void doingSomething9()
+{
+  doingSomething(9);
+}
+
+void doingSomething10()
+{
+  doingSomething(10);
+}
+
+void doingSomething11()
+{
+  doingSomething(11);
+}
+
+void doingSomething12()
+{
+  doingSomething(12);
+}
+
+void doingSomething13()
+{
+  doingSomething(13);
+}
+
+void doingSomething14()
+{
+  doingSomething(14);
+}
+
+void doingSomething15()
+{
+  doingSomething(15);
+}
+
+#if USE_COMPLEX_STRUCT
+
+  ISRTimerData curISRTimerData[NUMBER_ISR_TIMERS] =
+  {
+    //irqCallbackFunc, TimerInterval, deltaMillis, previousMillis
+    { doingSomething0,    5000L, 0, 0 },
+    { doingSomething1,   10000L, 0, 0 },
+    { doingSomething2,   15000L, 0, 0 },
+    { doingSomething3,   20000L, 0, 0 },
+    { doingSomething4,   25000L, 0, 0 },
+    { doingSomething5,   30000L, 0, 0 },
+    { doingSomething6,   35000L, 0, 0 },
+    { doingSomething7,   40000L, 0, 0 },
+    { doingSomething8,   45000L, 0, 0 },
+    { doingSomething9,   50000L, 0, 0 },
+    { doingSomething10,  55000L, 0, 0 },
+    { doingSomething11,  60000L, 0, 0 },
+    { doingSomething12,  65000L, 0, 0 },
+    { doingSomething13,  70000L, 0, 0 },
+    { doingSomething14,  75000L, 0, 0 },
+    { doingSomething15,  80000L, 0, 0 }
+  };
+  
+  void doingSomething(int index)
+  {
+    unsigned long currentMillis  = millis();
+    
+    curISRTimerData[index].deltaMillis    = currentMillis - curISRTimerData[index].previousMillis;
+    curISRTimerData[index].previousMillis = currentMillis;
+  }
+
+#else
+
+  irqCallback irqCallbackFunc[NUMBER_ISR_TIMERS] =
+  {
+    doingSomething0,  doingSomething1,  doingSomething2,  doingSomething3,
+    doingSomething4,  doingSomething5,  doingSomething6,  doingSomething7,
+    doingSomething8,  doingSomething9,  doingSomething10, doingSomething11,
+    doingSomething12, doingSomething13, doingSomething14, doingSomething15
+  };
+
+#endif
+
+////////////////////////////////////////////////
+
 
 #define SIMPLE_TIMER_MS        2000L
 
@@ -373,25 +558,30 @@ void simpleTimerDoingSomething2s()
 
   unsigned long currMillis = millis();
 
-  Serial.println("SimpleTimer : programmed " + String(SIMPLE_TIMER_MS) + "ms, current time ms : " + String(currMillis) + ", Delta ms : " + String(currMillis - previousMillis));
+  //Serial.printf("SimpleTimer : %lus, ms = %lu, Dms : %lu\n", SIMPLE_TIMER_MS / 1000, currMillis, currMillis - previousMillis);
+  Serial.println("SimpleTimer : " + String(SIMPLE_TIMER_MS / 1000) + ", ms : " + String(currMillis) + ", Dms : " + String(currMillis - previousMillis));
 
-  Serial.println("Timer2s actual : " + String(deltaMillis2s));
-  Serial.println("Timer5s actual : " + String(deltaMillis5s));
-  
+  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  {
+#if USE_COMPLEX_STRUCT    
+    Serial.println("Timer : " +String(i) + ", programmed : " + String(curISRTimerData[i].TimerInterval) + ", actual : " + String(curISRTimerData[i].deltaMillis));
+#else
+    Serial.println("Timer : " +String(i) + ", programmed : " + String(TimerInterval[i]) + ", actual : " + String(deltaMillis[i]));
+#endif    
+  }
+
   previousMillis = currMillis;
 }
 
-////////////////////////////////////////////////
-
-void setup()
+void setup() 
 {
   pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting ISR_Timers_Array_Simple");
-  Serial.println("Version : " + String(TIMER_INTERRUPT_VERSION));
+  Serial.println("\nStarting ISR_16_Timers_Array_Complex");
+  Serial.println(TIMER_INTERRUPT_VERSION);
   Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
 
   ITimer2.init();
@@ -399,10 +589,23 @@ void setup()
   if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
     Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
   else
-    Serial.println("Can't set ITimer2. Select another freq., duration or timer");
+    Serial.println("Can't set ITimer2. Select another freq., duration or timer"); 
 
-  ISR_Timer2.setInterval(2000L, doingSomething2s);
-  ISR_Timer2.setInterval(5000L, doingSomething5s);
+  //ISR_Timer2.setInterval(2000L, doingSomething2s);
+  //ISR_Timer2.setInterval(5000L, doingSomething5s);
+
+  // Just to demonstrate, don't use too many ISR Timers if not absolutely necessary
+  // You can use up to 16 timer for each ISR_Timer
+  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  {
+#if USE_COMPLEX_STRUCT
+    curISRTimerData[i].previousMillis = startMillis;
+    ISR_Timer2.setInterval(curISRTimerData[i].TimerInterval, curISRTimerData[i].irqCallbackFunc);
+#else
+    previousMillis[i] = startMillis;
+    ISR_Timer2.setInterval(TimerInterval[i], irqCallbackFunc[i]);
+#endif    
+  }
 
   // You need this timer for non-critical tasks. Avoid abusing ISR if not absolutely necessary.
   simpleTimer.setInterval(SIMPLE_TIMER_MS, simpleTimerDoingSomething2s);
@@ -435,12 +638,12 @@ While software timer, **programmed for 2s, is activated after more than 10.000s 
 
 ```
 Starting ISR_16_Timers_Array_Complex
-Version : v1.0.3
+TimerInterrupt v1.1.1
 CPU Frequency = 16 MHz
-Starting  ITimer2 OK, millis() = 0
-SimpleTimer : 2, ms : 10005, Dms : 10005
+Starting  ITimer2 OK, millis() = 1
+SimpleTimer : 2, ms : 10007, Dms : 10007
 Timer : 0, programmed : 5000, actual : 4997
-Timer : 1, programmed : 10000, actual : 10004
+Timer : 1, programmed : 10000, actual : 10005
 Timer : 2, programmed : 15000, actual : 0
 Timer : 3, programmed : 20000, actual : 0
 Timer : 4, programmed : 25000, actual : 0
@@ -455,11 +658,11 @@ Timer : 12, programmed : 65000, actual : 0
 Timer : 13, programmed : 70000, actual : 0
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 20065, Dms : 10060
+SimpleTimer : 2, ms : 20071, Dms : 10064
 Timer : 0, programmed : 5000, actual : 5002
 Timer : 1, programmed : 10000, actual : 10004
-Timer : 2, programmed : 15000, actual : 15006
-Timer : 3, programmed : 20000, actual : 20008
+Timer : 2, programmed : 15000, actual : 15007
+Timer : 3, programmed : 20000, actual : 20009
 Timer : 4, programmed : 25000, actual : 0
 Timer : 5, programmed : 30000, actual : 0
 Timer : 6, programmed : 35000, actual : 0
@@ -472,13 +675,13 @@ Timer : 12, programmed : 65000, actual : 0
 Timer : 13, programmed : 70000, actual : 0
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 30125, Dms : 10060
+SimpleTimer : 2, ms : 30136, Dms : 10065
 Timer : 0, programmed : 5000, actual : 5001
 Timer : 1, programmed : 10000, actual : 9999
 Timer : 2, programmed : 15000, actual : 15001
-Timer : 3, programmed : 20000, actual : 20008
-Timer : 4, programmed : 25000, actual : 25006
-Timer : 5, programmed : 30000, actual : 30007
+Timer : 3, programmed : 20000, actual : 20009
+Timer : 4, programmed : 25000, actual : 25007
+Timer : 5, programmed : 30000, actual : 30008
 Timer : 6, programmed : 35000, actual : 0
 Timer : 7, programmed : 40000, actual : 0
 Timer : 8, programmed : 45000, actual : 0
@@ -489,15 +692,15 @@ Timer : 12, programmed : 65000, actual : 0
 Timer : 13, programmed : 70000, actual : 0
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 40185, Dms : 10060
+SimpleTimer : 2, ms : 40202, Dms : 10066
 Timer : 0, programmed : 5000, actual : 5002
 Timer : 1, programmed : 10000, actual : 9999
 Timer : 2, programmed : 15000, actual : 15001
 Timer : 3, programmed : 20000, actual : 19998
-Timer : 4, programmed : 25000, actual : 25006
-Timer : 5, programmed : 30000, actual : 30007
-Timer : 6, programmed : 35000, actual : 35004
-Timer : 7, programmed : 40000, actual : 40006
+Timer : 4, programmed : 25000, actual : 25007
+Timer : 5, programmed : 30000, actual : 30008
+Timer : 6, programmed : 35000, actual : 35011
+Timer : 7, programmed : 40000, actual : 40007
 Timer : 8, programmed : 45000, actual : 0
 Timer : 9, programmed : 50000, actual : 0
 Timer : 10, programmed : 55000, actual : 0
@@ -506,79 +709,110 @@ Timer : 12, programmed : 65000, actual : 0
 Timer : 13, programmed : 70000, actual : 0
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 50247, Dms : 10062
+SimpleTimer : 2, ms : 50270, Dms : 10068
 Timer : 0, programmed : 5000, actual : 4998
 Timer : 1, programmed : 10000, actual : 10000
 Timer : 2, programmed : 15000, actual : 15001
 Timer : 3, programmed : 20000, actual : 19998
 Timer : 4, programmed : 25000, actual : 25000
-Timer : 5, programmed : 30000, actual : 30007
-Timer : 6, programmed : 35000, actual : 35004
-Timer : 7, programmed : 40000, actual : 40006
-Timer : 8, programmed : 45000, actual : 45008
-Timer : 9, programmed : 50000, actual : 50006
+Timer : 5, programmed : 30000, actual : 30008
+Timer : 6, programmed : 35000, actual : 35011
+Timer : 7, programmed : 40000, actual : 40007
+Timer : 8, programmed : 45000, actual : 45009
+Timer : 9, programmed : 50000, actual : 50007
 Timer : 10, programmed : 55000, actual : 0
 Timer : 11, programmed : 60000, actual : 0
 Timer : 12, programmed : 65000, actual : 0
 Timer : 13, programmed : 70000, actual : 0
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 60309, Dms : 10062
+SimpleTimer : 2, ms : 60338, Dms : 10068
 Timer : 0, programmed : 5000, actual : 4997
 Timer : 1, programmed : 10000, actual : 9999
 Timer : 2, programmed : 15000, actual : 14997
 Timer : 3, programmed : 20000, actual : 19999
 Timer : 4, programmed : 25000, actual : 25000
 Timer : 5, programmed : 30000, actual : 29998
-Timer : 6, programmed : 35000, actual : 35004
-Timer : 7, programmed : 40000, actual : 40006
-Timer : 8, programmed : 45000, actual : 45008
-Timer : 9, programmed : 50000, actual : 50006
-Timer : 10, programmed : 55000, actual : 55008
-Timer : 11, programmed : 60000, actual : 60005
+Timer : 6, programmed : 35000, actual : 35011
+Timer : 7, programmed : 40000, actual : 40007
+Timer : 8, programmed : 45000, actual : 45009
+Timer : 9, programmed : 50000, actual : 50007
+Timer : 10, programmed : 55000, actual : 55009
+Timer : 11, programmed : 60000, actual : 60006
 Timer : 12, programmed : 65000, actual : 0
 Timer : 13, programmed : 70000, actual : 0
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 70372, Dms : 10063
+SimpleTimer : 2, ms : 70408, Dms : 10070
 Timer : 0, programmed : 5000, actual : 4997
 Timer : 1, programmed : 10000, actual : 9999
 Timer : 2, programmed : 15000, actual : 14997
 Timer : 3, programmed : 20000, actual : 19999
 Timer : 4, programmed : 25000, actual : 25000
 Timer : 5, programmed : 30000, actual : 29998
-Timer : 6, programmed : 35000, actual : 35000
-Timer : 7, programmed : 40000, actual : 40006
-Timer : 8, programmed : 45000, actual : 45008
-Timer : 9, programmed : 50000, actual : 50006
-Timer : 10, programmed : 55000, actual : 55008
-Timer : 11, programmed : 60000, actual : 60005
-Timer : 12, programmed : 65000, actual : 65007
-Timer : 13, programmed : 70000, actual : 70009
+Timer : 6, programmed : 35000, actual : 34999
+Timer : 7, programmed : 40000, actual : 40007
+Timer : 8, programmed : 45000, actual : 45009
+Timer : 9, programmed : 50000, actual : 50007
+Timer : 10, programmed : 55000, actual : 55009
+Timer : 11, programmed : 60000, actual : 60006
+Timer : 12, programmed : 65000, actual : 65008
+Timer : 13, programmed : 70000, actual : 70010
 Timer : 14, programmed : 75000, actual : 0
 Timer : 15, programmed : 80000, actual : 0
-SimpleTimer : 2, ms : 80436, Dms : 10064
-Timer : 0, programmed : 5000, actual : 4998
+SimpleTimer : 2, ms : 80479, Dms : 10071
+Timer : 0, programmed : 5000, actual : 4997
 Timer : 1, programmed : 10000, actual : 10000
-Timer : 2, programmed : 15000, actual : 15001
+Timer : 2, programmed : 15000, actual : 15002
 Timer : 3, programmed : 20000, actual : 19999
-Timer : 4, programmed : 25000, actual : 25000
+Timer : 4, programmed : 25000, actual : 25001
 Timer : 5, programmed : 30000, actual : 29998
-Timer : 6, programmed : 35000, actual : 35000
-Timer : 7, programmed : 40000, actual : 39998
-Timer : 8, programmed : 45000, actual : 45008
-Timer : 9, programmed : 50000, actual : 50006
-Timer : 10, programmed : 55000, actual : 55008
-Timer : 11, programmed : 60000, actual : 60005
-Timer : 12, programmed : 65000, actual : 65007
-Timer : 13, programmed : 70000, actual : 70009
-Timer : 14, programmed : 75000, actual : 75006
-Timer : 15, programmed : 80000, actual : 80009
+Timer : 6, programmed : 35000, actual : 34999
+Timer : 7, programmed : 40000, actual : 40003
+Timer : 8, programmed : 45000, actual : 45009
+Timer : 9, programmed : 50000, actual : 50007
+Timer : 10, programmed : 55000, actual : 55009
+Timer : 11, programmed : 60000, actual : 60006
+Timer : 12, programmed : 65000, actual : 65008
+Timer : 13, programmed : 70000, actual : 70010
+Timer : 14, programmed : 75000, actual : 75008
+Timer : 15, programmed : 80000, actual : 80010
 
 ```
 
 ---
+
+2. The following is the sample terminal output when running example [Change_Interval](examples/Change_Interval) on AVR Mega2560 to demonstrate how to change Timer Interval on-the-fly
+
+```
+Starting Change_Interval on AVR
+TimerInterrupt v1.1.1
+CPU Frequency = 16 MHz
+Starting  ITimer1 OK, millis() = 1
+Starting  ITimer2 OK, millis() = 4
+Time = 10001, Timer1Count = 97, Timer2Count = 49
+Time = 20002, Timer1Count = 195, Timer2Count = 99
+Changing Interval, Timer1 = 200,  Timer2 = 400
+Time = 30003, Timer1Count = 244, Timer2Count = 123
+Time = 40004, Timer1Count = 294, Timer2Count = 148
+Changing Interval, Timer1 = 100,  Timer2 = 200
+Time = 50006, Timer1Count = 391, Timer2Count = 197
+Time = 60007, Timer1Count = 489, Timer2Count = 247
+Changing Interval, Timer1 = 200,  Timer2 = 400
+Time = 70008, Timer1Count = 538, Timer2Count = 271
+Time = 80009, Timer1Count = 588, Timer2Count = 296
+Changing Interval, Timer1 = 100,  Timer2 = 200
+```
+
+
 ---
+---
+
+### Releases v1.1.1
+
+1. Add example [**Change_Interval**](examples/Change_Interval)
+2. Bump up version to sync with other TimerInterrupt Libraries. Modify Version String.
+3. Add new h-only code besides conventional h/cpp code
 
 ### Release v1.0.3
 

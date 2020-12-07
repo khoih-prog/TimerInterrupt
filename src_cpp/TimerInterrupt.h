@@ -29,8 +29,6 @@
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
 ****************************************************************************************************************************/
 
-#pragma once
-
 #ifndef TimerInterrupt_h
 #define TimerInterrupt_h
 
@@ -624,8 +622,5 @@ ISR(TIMER5_COMPA_vect)
 #endif  //#ifndef TIMER5_INSTANTIATED
 #endif    //#if USE_TIMER_5
 #endif      //#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
-
-
-#include "TimerInterrupt-Impl.h"
 
 #endif      //#ifndef TimerInterrupt_h

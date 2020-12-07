@@ -1,6 +1,6 @@
 {
   "name": "TimerInterrupt",
-  "version": "1.0.3",
+  "version": "1.1.1",
   "keywords": "timer,interrupt,hardware",
   "description": "This library enables you to use Interrupt from Hardware Timers on an Arduino, such as Nano, UNO, Mega, Teensy, etc. It now supports 16 ISR-based timers, while consuming only 1 hardware Timer. Timers' interval is very long (ulong millisecs). The most important feature is they're ISR-based timers. Therefore, their executions are not blocked by bad-behaving functions or tasks. This important feature is absolutely necessary for mission-critical tasks.",
   "authors":
