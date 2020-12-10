@@ -220,6 +220,8 @@ void setup()
   }
 }
 
+#define USING_MAPPING_TABLE   false
+
 void fakeAnalogWrite(uint16_t pin, uint16_t value)
 {
   uint16_t localValue;
@@ -231,20 +233,20 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
     if ( (curISRTimerData[i].beingUsed) && (curISRTimerData[i].pin == pin) )
     {
       localValue = (value < MAX_PWM_VALUE) ? value : MAX_PWM_VALUE;
-      
+
       if (curISRTimerData[i].PWM_PremapValue == localValue)
       {
-#if (LOCAL_DEBUG > 0)        
+#if (LOCAL_DEBUG > 0)
         Serial.print("Ignore : Same Value for index = ");
         Serial.println(i);
 #endif
-        
+
         return;
       }
       else if (curISRTimerData[i].PWM_Value >= 0)
-      {     
+      {
         curISRTimerData[i].PWM_PremapValue = localValue;
-        
+
         // Mapping to corect value
         if ( ( localValue == 0) || ( localValue == MAX_PWM_VALUE - 1) )
         {
@@ -253,6 +255,9 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
         }
         else
         {
+
+#if USING_MAPPING_TABLE
+
           // Get the mapping index
           for (int j = 0; j < MAPPING_TABLE_SIZE; j++)
           {
@@ -271,18 +276,22 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
           // Can use map() function
           // Can use map() function
           curISRTimerData[i].PWM_Value = (uint16_t) ( (localIndex * 10 ) +
-                                         ( (value - mappingTable[localIndex]) * 10 ) /  (mappingTable[localIndex + 1] - mappingTable[localIndex]) );
+                                         ( (localValue - mappingTable[localIndex]) * 10 ) /  (mappingTable[localIndex + 1] - mappingTable[localIndex]) );
+
+#else
+          curISRTimerData[i].PWM_Value = localValue;
+#endif
 
 #if (LOCAL_DEBUG > 0)
-      Serial.print("Update index = ");
-      Serial.print(i);
-      Serial.print(", pin = ");
-      Serial.print(pin);
-      Serial.print(", input PWM_Value = ");
-      Serial.print(value);
-      Serial.print(", mapped PWM_Value = ");
-      Serial.println(curISRTimerData[i].PWM_Value);
-#endif                           
+          Serial.print("Update index = ");
+          Serial.print(i);
+          Serial.print(", pin = ");
+          Serial.print(pin);
+          Serial.print(", input PWM_Value = ");
+          Serial.print(value);
+          Serial.print(", mapped PWM_Value = ");
+          Serial.println(curISRTimerData[i].PWM_Value);
+#endif
         }
       }
       else
@@ -316,6 +325,10 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
       }
       else
       {
+        curISRTimerData[i].PWM_PremapValue = localValue;
+
+#if USING_MAPPING_TABLE
+
         // Get the mapping index
         for (int j = 0; j < MAPPING_TABLE_SIZE; j++)
         {
@@ -333,7 +346,10 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
         // Can use map() function
         // Can use map() function
         curISRTimerData[i].PWM_Value = (uint16_t) ( (localIndex * 10 ) +
-                                       ( (value - mappingTable[localIndex]) * 10 ) /  (mappingTable[localIndex + 1] - mappingTable[localIndex]) );
+                                       ( (localValue - mappingTable[localIndex]) * 10 ) /  (mappingTable[localIndex + 1] - mappingTable[localIndex]) );
+#else
+        curISRTimerData[i].PWM_Value = localValue;
+#endif
       }
 
       curISRTimerData[i].countPWM     = 0;
@@ -411,7 +427,7 @@ void loop()
     Serial.print(", max = ");
     Serial.println(MAX_PWM_VALUE - 1);
 #endif
-    
+
     delay(DELAY_BETWEEN_CHANGE_MS);
   }
 
