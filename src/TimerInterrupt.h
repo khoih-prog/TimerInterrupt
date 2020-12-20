@@ -130,14 +130,24 @@ class TimerInterrupt
       _frequency = 0;
       _callback = NULL;
       _params = NULL;
+      _timerDone = false;
+      _prescalerIndex = NO_PRESCALER;
+      _OCRValue = 0;
+      _OCRValueRemaining = 0;
+      _toggle_count = -1;
     };
 
-    TimerInterrupt(uint8_t timerNo)
+    explicit TimerInterrupt(uint8_t timerNo)
     {
       _timer = timerNo;
       _frequency = 0;
       _callback = NULL;
       _params = NULL;
+      _timerDone = false;
+      _prescalerIndex = NO_PRESCALER;
+      _OCRValue = 0;
+      _OCRValueRemaining = 0;
+      _toggle_count = -1;
     };
 
     void callback() __attribute__((always_inline))
@@ -246,7 +256,7 @@ class TimerInterrupt
       return _timer;
     };
 
-    volatile long getCount() __attribute__((always_inline))
+    long getCount() __attribute__((always_inline))
     {
       return _toggle_count;
     };
@@ -262,12 +272,12 @@ class TimerInterrupt
       //interrupts();
     };
 
-    volatile long get_OCRValue() __attribute__((always_inline))
+    long get_OCRValue() __attribute__((always_inline))
     {
       return _OCRValue;
     };
 
-    volatile long get_OCRValueRemaining() __attribute__((always_inline))
+    long get_OCRValueRemaining() __attribute__((always_inline))
     {
       return _OCRValueRemaining;
     };
@@ -282,7 +292,7 @@ class TimerInterrupt
       else
         _OCRValueRemaining -= min(MAX_COUNT_8BIT, _OCRValueRemaining);
 
-      if (_OCRValueRemaining <= 0)
+      if (_OCRValueRemaining == 0)
       {
         // Reset value for next cycle
         _OCRValueRemaining = _OCRValue;
