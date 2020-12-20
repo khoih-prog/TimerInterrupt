@@ -33,22 +33,22 @@
 #define TimerInterrupt_h
 
 #ifndef TIMER_INTERRUPT_DEBUG
-#define TIMER_INTERRUPT_DEBUG 0
+#define TIMER_INTERRUPT_DEBUG      0
 #endif
 
 #if defined(ESP8266) || defined(ESP32)
 #error This code is designed to run on Arduino AVR (Nano, UNO, Mega, etc.) platform, not ESP8266 nor ESP32! Please check your Tools->Board setting.
 #endif
 
-#define TIMER_INTERRUPT_VERSION "TimerInterrupt v1.1.1"
+#define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.1"
 
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "Arduino.h"
 #include "pins_arduino.h"
 
-#define MAX_COUNT_8BIT 255
-#define MAX_COUNT_16BIT 65535
+#define MAX_COUNT_8BIT            255
+#define MAX_COUNT_16BIT           65535
 
 #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
 #define TCCR2A TCCR2
@@ -100,229 +100,231 @@ enum
   T2_NUM_ITEMS
 };
 
-const unsigned int prescalerDiv[NUM_ITEMS] = {1, 1, 8, 64, 256, 1024};
-const unsigned int prescalerDivT2[T2_NUM_ITEMS] = {1, 1, 8, 32, 64, 128, 256, 1024};
+const unsigned int prescalerDiv   [NUM_ITEMS]     = { 1, 1, 8, 64, 256, 1024 };
+const unsigned int prescalerDivT2 [T2_NUM_ITEMS]  = { 1, 1, 8, 32,  64,  128, 256, 1024 };
 
 class TimerInterrupt
 {
-private:
-  bool _timerDone;
-  int8_t _timer;
-  unsigned int _prescalerIndex;
-  uint32_t _OCRValue;
-  uint32_t _OCRValueRemaining;
-  volatile long _toggle_count;
-  double _frequency;
+  private:
 
-  void *_callback; // pointer to the callback function
-  void *_params;   // function parameter
+    bool            _timerDone;
+    int8_t          _timer;
+    unsigned int    _prescalerIndex;
+    uint32_t        _OCRValue;
+    uint32_t        _OCRValueRemaining;
+    volatile long   _toggle_count;
+    double           _frequency;
 
-  void set_OCR(void);
+    void*           _callback;        // pointer to the callback function
+    void*           _params;          // function parameter
 
-public:
-  TimerInterrupt()
-  {
-    _timer = -1;
-    _frequency = 0;
-    _callback = NULL;
-    _params = NULL;
-    _timerDone = false;
-    _prescalerIndex = NO_PRESCALER;
-    _OCRValue = 0;
-    _OCRValueRemaining = 0;
-    _toggle_count = -1;
-  };
+    void set_OCR(void);
 
-  explicit TimerInterrupt(uint8_t timerNo)
-  {
-    _timer = timerNo;
-    _frequency = 0;
-    _callback = NULL;
-    _params = NULL;
-    _timerDone = false;
-    _prescalerIndex = NO_PRESCALER;
-    _OCRValue = 0;
-    _OCRValueRemaining = 0;
-    _toggle_count = -1;
-  };
+  public:
 
-  void callback() __attribute__((always_inline))
-  {
-    if (_callback != NULL)
+    TimerInterrupt()
     {
-      if (_params != NULL)
-        (*(timer_callback_p)_callback)(_params);
+      _timer = -1;
+      _frequency = 0;
+      _callback = NULL;
+      _params = NULL;
+      _timerDone = false;
+      _prescalerIndex = NO_PRESCALER;
+      _OCRValue = 0;
+      _OCRValueRemaining = 0;
+      _toggle_count = -1;
+    };
+
+    explicit TimerInterrupt(uint8_t timerNo)
+    {
+      _timer = timerNo;
+      _frequency = 0;
+      _callback = NULL;
+      _params = NULL;
+      _timerDone = false;
+      _prescalerIndex = NO_PRESCALER;
+      _OCRValue = 0;
+      _OCRValueRemaining = 0;
+      _toggle_count = -1;
+    };
+
+    void callback() __attribute__((always_inline))
+    {
+      if (_callback != NULL)
+      {
+        if (_params != NULL)
+          (*(timer_callback_p)_callback)(_params);
+        else
+          (*(timer_callback)_callback)();
+      }
+    }
+
+    void init(int8_t timer);
+
+    void init()
+    {
+      init(_timer);
+    };
+
+    // frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    bool setFrequency(float frequency, timer_callback_p callback, /* void* */ uint32_t params, unsigned long duration = 0);
+
+    // frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    bool setFrequency(float frequency, timer_callback callback, unsigned long duration = 0)
+    {
+      return setFrequency(frequency, reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
+    }
+
+    // interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    template<typename TArg>
+    bool setInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0)
+    {
+      static_assert(sizeof(TArg) <= sizeof(uint32_t), "setInterval() callback argument size must be <= 4 bytes");
+      return setFrequency((float) (1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), (uint32_t) params, duration);
+    }
+
+    // interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    bool setInterval(unsigned long interval, timer_callback callback, unsigned long duration = 0)
+    {
+      return setFrequency((float) (1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
+    }
+
+    template<typename TArg>
+    bool attachInterrupt(float frequency, void (*callback)(TArg), TArg params, unsigned long duration = 0)
+    {
+      static_assert(sizeof(TArg) <= sizeof(uint32_t), "attachInterrupt() callback argument size must be <= 4 bytes");
+      return setFrequency(frequency, reinterpret_cast<timer_callback_p>(callback), (uint32_t) params, duration);
+    }
+
+    bool attachInterrupt(float frequency, timer_callback callback, unsigned long duration = 0)
+    {
+      return setFrequency(frequency, reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
+    }
+
+    // Interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    template<typename TArg>
+    bool attachInterruptInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0)
+    {
+      static_assert(sizeof(TArg) <= sizeof(uint32_t), "attachInterruptInterval() callback argument size must be <= 4 bytes");
+      return setFrequency( (float) ( 1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), (uint32_t) params, duration);
+    }
+
+    // Interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    bool attachInterruptInterval(unsigned long interval, timer_callback callback, unsigned long duration = 0)
+    {
+      return setFrequency( (float) ( 1000.0f / interval), reinterpret_cast<timer_callback_p> (callback), /*NULL*/ 0, duration);
+    }
+
+    void detachInterrupt();
+
+    void disableTimer(void)
+    {
+      detachInterrupt();
+    }
+
+    // Duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    void reattachInterrupt(unsigned long duration = 0);
+
+    // Duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+    void enableTimer(unsigned long duration = 0) __attribute__((always_inline))
+    {
+      reattachInterrupt(duration);
+    }
+
+    // Just stop clock source, still keep the count
+    void pauseTimer(void);
+
+    // Just reconnect clock source, continue from the current count
+    void resumeTimer(void);
+
+    // Just stop clock source, clear the count
+    void stopTimer(void)
+    {
+      detachInterrupt();
+    }
+
+    // Just reconnect clock source, start current count from 0
+    void restartTimer(unsigned long duration = 0)
+    {
+      reattachInterrupt(duration);
+    }
+
+    int8_t getTimer() __attribute__((always_inline))
+    {
+      return _timer;
+    };
+
+    long getCount() __attribute__((always_inline))
+    {
+      return _toggle_count;
+    };
+
+    void setCount(long countInput) __attribute__((always_inline))
+    {
+      //cli();//stop interrupts
+      //noInterrupts();
+
+      _toggle_count = countInput;
+
+      //sei();//enable interrupts
+      //interrupts();
+    };
+
+    long get_OCRValue() __attribute__((always_inline))
+    {
+      return _OCRValue;
+    };
+
+    long get_OCRValueRemaining() __attribute__((always_inline))
+    {
+      return _OCRValueRemaining;
+    };
+
+    void adjust_OCRValue() //__attribute__((always_inline))
+    {
+      //cli();//stop interrupts
+      noInterrupts();
+
+      if (_timer != 2)
+        _OCRValueRemaining -= min(MAX_COUNT_16BIT, _OCRValueRemaining);
       else
-        (*(timer_callback)_callback)();
-    }
-  }
+        _OCRValueRemaining -= min(MAX_COUNT_8BIT, _OCRValueRemaining);
 
-  void init(int8_t timer);
+      if (_OCRValueRemaining == 0)
+      {
+        // Reset value for next cycle
+        _OCRValueRemaining = _OCRValue;
+        _timerDone = true;
+      }
+      else
+        _timerDone = false;
 
-  void init()
-  {
-    init(_timer);
-  };
+      //sei();//enable interrupts
+      interrupts();
+    };
 
-  // frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  bool setFrequency(float frequency, timer_callback_p callback, /* void* */ uint32_t params, unsigned long duration = 0);
-
-  // frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  bool setFrequency(float frequency, timer_callback callback, unsigned long duration = 0)
-  {
-    return setFrequency(frequency, reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
-  }
-
-  // interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  template <typename TArg>
-  bool setInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0)
-  {
-    static_assert(sizeof(TArg) <= sizeof(uint32_t), "setInterval() callback argument size must be <= 4 bytes");
-    return setFrequency((float)(1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), (uint32_t)params, duration);
-  }
-
-  // interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  bool setInterval(unsigned long interval, timer_callback callback, unsigned long duration = 0)
-  {
-    return setFrequency((float)(1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
-  }
-
-  template <typename TArg>
-  bool attachInterrupt(float frequency, void (*callback)(TArg), TArg params, unsigned long duration = 0)
-  {
-    static_assert(sizeof(TArg) <= sizeof(uint32_t), "attachInterrupt() callback argument size must be <= 4 bytes");
-    return setFrequency(frequency, reinterpret_cast<timer_callback_p>(callback), (uint32_t)params, duration);
-  }
-
-  bool attachInterrupt(float frequency, timer_callback callback, unsigned long duration = 0)
-  {
-    return setFrequency(frequency, reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
-  }
-
-  // Interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  template <typename TArg>
-  bool attachInterruptInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0)
-  {
-    static_assert(sizeof(TArg) <= sizeof(uint32_t), "attachInterruptInterval() callback argument size must be <= 4 bytes");
-    return setFrequency((float)(1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), (uint32_t)params, duration);
-  }
-
-  // Interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  bool attachInterruptInterval(unsigned long interval, timer_callback callback, unsigned long duration = 0)
-  {
-    return setFrequency((float)(1000.0f / interval), reinterpret_cast<timer_callback_p>(callback), /*NULL*/ 0, duration);
-  }
-
-  void detachInterrupt();
-
-  void disableTimer(void)
-  {
-    detachInterrupt();
-  }
-
-  // Duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  void reattachInterrupt(unsigned long duration = 0);
-
-  // Duration (in milliseconds). Duration = 0 or not specified => run indefinitely
-  void enableTimer(unsigned long duration = 0) __attribute__((always_inline))
-  {
-    reattachInterrupt(duration);
-  }
-
-  // Just stop clock source, still keep the count
-  void pauseTimer(void);
-
-  // Just reconnect clock source, continue from the current count
-  void resumeTimer(void);
-
-  // Just stop clock source, clear the count
-  void stopTimer(void)
-  {
-    detachInterrupt();
-  }
-
-  // Just reconnect clock source, start current count from 0
-  void restartTimer(unsigned long duration = 0)
-  {
-    reattachInterrupt(duration);
-  }
-
-  int8_t getTimer() __attribute__((always_inline))
-  {
-    return _timer;
-  };
-
-  long getCount() __attribute__((always_inline))
-  {
-    return _toggle_count;
-  };
-
-  void setCount(long countInput) __attribute__((always_inline))
-  {
-    //cli();//stop interrupts
-    //noInterrupts();
-
-    _toggle_count = countInput;
-
-    //sei();//enable interrupts
-    //interrupts();
-  };
-
-  long get_OCRValue() __attribute__((always_inline))
-  {
-    return _OCRValue;
-  };
-
-  long get_OCRValueRemaining() __attribute__((always_inline))
-  {
-    return _OCRValueRemaining;
-  };
-
-  void adjust_OCRValue() //__attribute__((always_inline))
-  {
-    //cli();//stop interrupts
-    noInterrupts();
-
-    if (_timer != 2)
-      _OCRValueRemaining -= min(MAX_COUNT_16BIT, _OCRValueRemaining);
-    else
-      _OCRValueRemaining -= min(MAX_COUNT_8BIT, _OCRValueRemaining);
-
-    if (_OCRValueRemaining == 0)
+    void reload_OCRValue() //__attribute__((always_inline))
     {
-      // Reset value for next cycle
-      _OCRValueRemaining = _OCRValue;
-      _timerDone = true;
-    }
-    else
+      //cli();//stop interrupts
+      noInterrupts();
+
+      // Reset value for next cycle, have to deduct the value already loaded to OCR register
+
+      if (_timer != 2)
+        _OCRValueRemaining = _OCRValue - min(MAX_COUNT_16BIT, _OCRValueRemaining);
+      else
+        _OCRValueRemaining = _OCRValue - min(MAX_COUNT_8BIT, _OCRValueRemaining);
+
       _timerDone = false;
 
-    //sei();//enable interrupts
-    interrupts();
-  };
+      //sei();//enable interrupts
+      interrupts();
+    };
 
-  void reload_OCRValue() //__attribute__((always_inline))
-  {
-    //cli();//stop interrupts
-    noInterrupts();
-
-    // Reset value for next cycle, have to deduct the value already loaded to OCR register
-
-    if (_timer != 2)
-      _OCRValueRemaining = _OCRValue - min(MAX_COUNT_16BIT, _OCRValueRemaining);
-    else
-      _OCRValueRemaining = _OCRValue - min(MAX_COUNT_8BIT, _OCRValueRemaining);
-
-    _timerDone = false;
-
-    //sei();//enable interrupts
-    interrupts();
-  };
-
-  bool checkTimerDone(void) //__attribute__((always_inline))
-  {
-    return _timerDone;
-  };
+    bool checkTimerDone(void) //__attribute__((always_inline))
+    {
+      return _timerDone;
+    };
 
 }; // class TimerInterrupt
 
@@ -340,7 +342,7 @@ ISR(TIMER1_COMPA_vect)
   long countLocal = ITimer1.getCount();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-  Serial.println("T1 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()));
+  Serial.println("T1 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()) );
 #endif
 
   if (ITimer1.getTimer() == 1)
@@ -350,7 +352,7 @@ ISR(TIMER1_COMPA_vect)
       if (ITimer1.checkTimerDone())
       {
 #if (TIMER_INTERRUPT_DEBUG > 1)
-        Serial.println("T1 callback, _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()) + ", millis = " + String(millis()));
+        Serial.println("T1 callback, _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()) + ", millis = " + String(millis()) );
 #endif
         ITimer1.callback();
 
@@ -365,14 +367,14 @@ ISR(TIMER1_COMPA_vect)
         //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
         // If _OCRValue == 0, flag _timerDone for next cycle
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T1 before _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()));
+        Serial.println("T1 before _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()) );
 #endif
 
         // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
         ITimer1.adjust_OCRValue();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T1 after _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()));
+        Serial.println("T1 after _OCRValueRemaining = " + String(ITimer1.get_OCRValueRemaining()) );
 #endif
       }
     }
@@ -386,8 +388,8 @@ ISR(TIMER1_COMPA_vect)
   }
 }
 
-#endif //#ifndef TIMER1_INSTANTIATED
-#endif //#if USE_TIMER_1
+#endif  //#ifndef TIMER1_INSTANTIATED
+#endif    //#if USE_TIMER_1
 
 #if USE_TIMER_2
 #ifndef TIMER2_INSTANTIATED
@@ -399,7 +401,7 @@ ISR(TIMER2_COMPA_vect)
   long countLocal = ITimer2.getCount();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-  Serial.println("T2 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()));
+  Serial.println("T2 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()) );
 #endif
 
   if (ITimer2.getTimer() == 2)
@@ -409,7 +411,7 @@ ISR(TIMER2_COMPA_vect)
       if (ITimer2.checkTimerDone())
       {
 #if (TIMER_INTERRUPT_DEBUG > 1)
-        Serial.println("T2 callback, _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()) + ", millis = " + String(millis()));
+        Serial.println("T2 callback, _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()) + ", millis = " + String(millis()) );
 #endif
         ITimer2.callback();
         // To reload _OCRValue
@@ -417,11 +419,12 @@ ISR(TIMER2_COMPA_vect)
 
         if (countLocal > 0)
           ITimer2.setCount(countLocal - 1);
+
       }
       else
       {
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T2 before _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()));
+        Serial.println("T2 before _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()) );
 #endif
 
         //Deduct _OCRValue by min(MAX_COUNT_8BIT, _OCRValue)
@@ -429,7 +432,7 @@ ISR(TIMER2_COMPA_vect)
         ITimer2.adjust_OCRValue();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T2 after _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()));
+        Serial.println("T2 after _OCRValueRemaining = " + String(ITimer2.get_OCRValueRemaining()) );
 #endif
       }
     }
@@ -442,8 +445,8 @@ ISR(TIMER2_COMPA_vect)
     }
   }
 }
-#endif //#ifndef TIMER2_INSTANTIATED
-#endif //#if USE_TIMER_2
+#endif  //#ifndef TIMER2_INSTANTIATED
+#endif    //#if USE_TIMER_2
 
 #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
 
@@ -459,7 +462,7 @@ ISR(TIMER3_COMPA_vect)
   long countLocal = ITimer3.getCount();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-  Serial.println("T3 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()));
+  Serial.println("T3 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()) );
 #endif
 
   if (ITimer3.getTimer() == 3)
@@ -469,7 +472,7 @@ ISR(TIMER3_COMPA_vect)
       if (ITimer3.checkTimerDone())
       {
 #if (TIMER_INTERRUPT_DEBUG > 1)
-        Serial.println("T3 callback, _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()) + ", millis = " + String(millis()));
+        Serial.println("T3 callback, _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()) + ", millis = " + String(millis()) );
 #endif
         ITimer3.callback();
 
@@ -484,14 +487,14 @@ ISR(TIMER3_COMPA_vect)
         //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
         // If _OCRValue == 0, flag _timerDone for next cycle
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T3 before _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()));
+        Serial.println("T3 before _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()) );
 #endif
 
         // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
         ITimer3.adjust_OCRValue();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T3 after _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()));
+        Serial.println("T3 after _OCRValueRemaining = " + String(ITimer3.get_OCRValueRemaining()) );
 #endif
       }
     }
@@ -505,8 +508,8 @@ ISR(TIMER3_COMPA_vect)
   }
 }
 
-#endif //#ifndef TIMER3_INSTANTIATED
-#endif //#if USE_TIMER_3
+#endif  //#ifndef TIMER3_INSTANTIATED
+#endif    //#if USE_TIMER_3
 
 #if USE_TIMER_4
 #ifndef TIMER4_INSTANTIATED
@@ -519,7 +522,7 @@ ISR(TIMER4_COMPA_vect)
   long countLocal = ITimer4.getCount();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-  Serial.println("T4 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()));
+  Serial.println("T4 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()) );
 #endif
 
   if (ITimer4.getTimer() == 4)
@@ -529,7 +532,7 @@ ISR(TIMER4_COMPA_vect)
       if (ITimer4.checkTimerDone())
       {
 #if (TIMER_INTERRUPT_DEBUG > 1)
-        Serial.println("T4 callback, _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()) + ", millis = " + String(millis()));
+        Serial.println("T4 callback, _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()) + ", millis = " + String(millis()) );
 #endif
         ITimer4.callback();
 
@@ -544,14 +547,14 @@ ISR(TIMER4_COMPA_vect)
         //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
         // If _OCRValue == 0, flag _timerDone for next cycle
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T4 before _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()));
+        Serial.println("T4 before _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()) );
 #endif
 
         // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
         ITimer4.adjust_OCRValue();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T4 after _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()));
+        Serial.println("T4 after _OCRValueRemaining = " + String(ITimer4.get_OCRValueRemaining()) );
 #endif
       }
     }
@@ -565,8 +568,9 @@ ISR(TIMER4_COMPA_vect)
   }
 }
 
-#endif //#ifndef TIMER4_INSTANTIATED
-#endif //#if USE_TIMER_4
+
+#endif  //#ifndef TIMER4_INSTANTIATED
+#endif    //#if USE_TIMER_4
 
 #if USE_TIMER_5
 #ifndef TIMER5_INSTANTIATED
@@ -579,7 +583,7 @@ ISR(TIMER5_COMPA_vect)
   long countLocal = ITimer5.getCount();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-  Serial.println("T5 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()));
+  Serial.println("T5 count = " + String(countLocal) + ", _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()) );
 #endif
 
   if (ITimer5.getTimer() == 5)
@@ -589,7 +593,7 @@ ISR(TIMER5_COMPA_vect)
       if (ITimer5.checkTimerDone())
       {
 #if (TIMER_INTERRUPT_DEBUG > 1)
-        Serial.println("T5 callback, _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()) + ", millis = " + String(millis()));
+        Serial.println("T5 callback, _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()) + ", millis = " + String(millis()) );
 #endif
         ITimer5.callback();
 
@@ -604,14 +608,14 @@ ISR(TIMER5_COMPA_vect)
         //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
         // If _OCRValue == 0, flag _timerDone for next cycle
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T5 before _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()));
+        Serial.println("T5 before _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()) );
 #endif
 
         // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
         ITimer5.adjust_OCRValue();
 
 #if (TIMER_INTERRUPT_DEBUG > 2)
-        Serial.println("T5 after _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()));
+        Serial.println("T5 after _OCRValueRemaining = " + String(ITimer5.get_OCRValueRemaining()) );
 #endif
       }
     }
@@ -625,8 +629,8 @@ ISR(TIMER5_COMPA_vect)
   }
 }
 
-#endif //#ifndef TIMER5_INSTANTIATED
-#endif //#if USE_TIMER_5
-#endif //#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
+#endif  //#ifndef TIMER5_INSTANTIATED
+#endif    //#if USE_TIMER_5
+#endif      //#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
 
-#endif //#ifndef TimerInterrupt_h
+#endif      //#ifndef TimerInterrupt_h
