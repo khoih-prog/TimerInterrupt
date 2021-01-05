@@ -126,28 +126,28 @@ class TimerInterrupt
 
     TimerInterrupt()
     {
-      _timer = -1;
-      _frequency = 0;
-      _callback = NULL;
-      _params = NULL;
-      _timerDone = false;
-      _prescalerIndex = NO_PRESCALER;
-      _OCRValue = 0;
-      _OCRValueRemaining = 0;
-      _toggle_count = -1;
+      _timer              = -1;
+      _frequency          = 0;
+      _callback           = NULL;
+      _params             = NULL;
+      _timerDone          = false;
+      _prescalerIndex     = NO_PRESCALER;
+      _OCRValue           = 0;
+      _OCRValueRemaining  = 0;
+      _toggle_count       = -1;
     };
 
     explicit TimerInterrupt(uint8_t timerNo)
     {
-      _timer = timerNo;
-      _frequency = 0;
-      _callback = NULL;
-      _params = NULL;
-      _timerDone = false;
-      _prescalerIndex = NO_PRESCALER;
-      _OCRValue = 0;
-      _OCRValueRemaining = 0;
-      _toggle_count = -1;
+      _timer              = timerNo;
+      _frequency          = 0;
+      _callback           = NULL;
+      _params             = NULL;
+      _timerDone          = false;
+      _prescalerIndex     = NO_PRESCALER;
+      _OCRValue           = 0;
+      _OCRValueRemaining  = 0;
+      _toggle_count       = -1;
     };
 
     void callback() __attribute__((always_inline))
