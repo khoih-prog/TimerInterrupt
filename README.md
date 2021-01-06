@@ -130,10 +130,9 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 ### Releases v1.1.2
 
-1. Fix compiler warnings.
+1. Clean-up all compiler warnings possible.
 2. Optimize examples to reduce memory usage by using Flash String whenever possible.
-3. Clean-up all compiler warnings possible.
-4. Add Table of Contents
+3. Add Table of Contents
 
 
 ### Releases v1.1.1
@@ -908,10 +907,9 @@ Sometimes, the library will only work if you update the board core to the latest
 
 ### Releases v1.1.2
 
-1. Fix compiler warnings.
+1. Clean-up all compiler warnings possible.
 2. Optimize examples to reduce memory usage by using Flash String whenever possible.
-3. Clean-up all compiler warnings possible.
-4. Add Table of Contents
+3. Add Table of Contents
 
 ### Releases v1.1.1
 
