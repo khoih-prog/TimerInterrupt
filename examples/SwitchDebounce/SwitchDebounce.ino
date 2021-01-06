@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
   
-  Version: 1.1.0
+  Version: 1.1.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -31,6 +31,7 @@
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    Switch Debouncing uses high frequency hardware timer 50Hz == 20ms) to measure the time from the SW is pressed,
@@ -40,9 +41,19 @@
    SW is released.
  *****************************************************************************************************************************/
 
-//These define's must be placed at the beginning before #include "TimerInterrupt.h"
-// Don't define TIMER_INTERRUPT_DEBUG > 2. Only for special ISR debugging only. Can hang the system.
-#define TIMER_INTERRUPT_DEBUG      1
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
+#define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     true
 #define USE_TIMER_2     false
@@ -58,9 +69,6 @@ unsigned int SWPin = A0;
 #define DEBOUNCING_INTERVAL_MS    100
 #define LONG_PRESS_INTERVAL_MS    5000
 
-#define LOCAL_DEBUG      1
-
-
 volatile bool SWPressed     = false;
 volatile bool SWLongPressed = false;
 
@@ -69,8 +77,12 @@ void TimerHandler1()
   static unsigned int debounceCountSWPressed  = 0;
   static unsigned int debounceCountSWReleased = 0;
 
+#if (TIMER_INTERRUPT_DEBUG > 1)
   static unsigned long SWPressedTime;
   static unsigned long SWReleasedTime;
+
+  unsigned long currentMillis = millis();
+#endif
 
   static bool started = false;
 
@@ -90,10 +102,10 @@ void TimerHandler1()
       // Call and flag SWPressed
       if (!SWPressed)
       {
-        SWPressedTime = millis();
-
-#if (LOCAL_DEBUG > 0)
-        Serial.println("SW Press, from millis() = " + String(SWPressedTime));
+#if (TIMER_INTERRUPT_DEBUG > 1)   
+        SWPressedTime = currentMillis;
+        
+        Serial.print("SW Press, from millis() = "); Serial.println(SWPressedTime);
 #endif
 
         SWPressed = true;
@@ -107,9 +119,10 @@ void TimerHandler1()
         // Call and flag SWLongPressed
         if (!SWLongPressed)
         {
-#if (LOCAL_DEBUG > 0)
-          Serial.println("SW Long Pressed, total time ms = " + String(millis()) + " - " + String(SWPressedTime)
-                         + " = " + String(millis() - SWPressedTime) );
+#if (TIMER_INTERRUPT_DEBUG > 1)
+          Serial.print("SW Long Pressed, total time ms = "); Serial.print(currentMillis);
+          Serial.print(" - "); Serial.print(SWPressedTime);
+          Serial.print(" = "); Serial.println(currentMillis - SWPressedTime);                                           
 #endif
 
           SWLongPressed = true;
@@ -125,11 +138,11 @@ void TimerHandler1()
     // Start debouncing counting debounceCountSWReleased and clear debounceCountSWPressed
     if ( SWPressed && (++debounceCountSWReleased >= DEBOUNCING_INTERVAL_MS / TIMER1_INTERVAL_MS))
     {
-      SWReleasedTime = millis();
+#if (TIMER_INTERRUPT_DEBUG > 1)      
+      SWReleasedTime = currentMillis;
 
       // Call and flag SWPressed
-#if (LOCAL_DEBUG > 0)
-      Serial.println("SW Released, from millis() = " + String(SWReleasedTime));
+      Serial.print("SW Released, from millis() = "); Serial.println(SWReleasedTime);
 #endif
 
       SWPressed     = false;
@@ -140,8 +153,9 @@ void TimerHandler1()
       //Your_Response_To_Release();
 
       // Call and flag SWPressed
-#if (LOCAL_DEBUG > 0)
-      Serial.println("SW Pressed total time ms = " + String(SWReleasedTime - SWPressedTime));
+#if (TIMER_INTERRUPT_DEBUG > 1)
+      Serial.print("SW Pressed total time ms = ");
+      Serial.println(SWReleasedTime - SWPressedTime);
 #endif
 
       debounceCountSWPressed = 0;
@@ -155,9 +169,9 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting SwitchDebounce");
+  Serial.println(F("\nStarting SwitchDebounce on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   // Timer0 is used for micros(), millis(), delay(), etc and can't be used
   // Select Timer 1-2 for UNO, 0-5 for MEGA
@@ -168,9 +182,11 @@ void setup()
   // Using ATmega328 used in UNO => 16MHz CPU clock ,
 
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
-    Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer1. Select another freq., duration or timer");
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 }
 
 void loop()

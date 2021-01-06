@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
   
-  Version: 1.1.0
+  Version: 1.1.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -31,6 +31,7 @@
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
  *****************************************************************************************************************************/
 /****************************************************************************************************************************
    ISR_Timer_Switches demontrates the use of ISR combining with Timer Interrupt to avoid being blocked by
@@ -54,10 +55,21 @@
     To run MEGA+WiFi combined, turn ON SW 1+2 (MCU <-> ESP) and SW 3+4 (USB <-> MCU)
  *****************************************************************************************************************************/
 
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
 #define BLYNK_PRINT Serial
 //#define BLYNK_DEBUG true
 
-//These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     true
@@ -281,7 +293,7 @@ void heartBeatPrint(void)
 {
   static int num = 1;
 
-  Serial.print("B");
+  Serial.print(F("B"));
 
   if (num == 80)
   {
@@ -290,7 +302,7 @@ void heartBeatPrint(void)
   }
   else if (num++ % 10 == 0)
   {
-    Serial.print(" ");
+    Serial.print(F(" "));
   }
 }
 
@@ -388,9 +400,9 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting ISR_Timer_Switches");
+  Serial.println(F("\nStarting ISR_Timer_Switches on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   LampState = false;
 
@@ -398,9 +410,7 @@ void setup()
   EspSerial.begin(ESP8266_BAUD);
   delay(10);
 
-  Serial.println("\nStarting");
-  Serial.print("ESPSerial using ");
-  Serial.println(ESP8266_BAUD);
+  Serial.print(F("ESPSerial using ")); Serial.println(ESP8266_BAUD);
 
 
   // Lamp 1
@@ -422,16 +432,18 @@ void setup()
   // Interval in millisecs
   // Be sure to place this HW Timer well ahead blocking calls, because it needs to be initialized.
   if (ITimer1.attachInterruptInterval(TIMER_INTERVAL_MS, HWCheckButton))
-    Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer1. Select another freq. or interval");
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
   Blynk.begin(auth, wifi, ssid, pass, blynk_server, BLYNK_HARDWARE_PORT);
 
   if (Blynk.connected())
-    Serial.println("Blynk connected");
+    Serial.println(F("Blynk connected"));
   else
-    Serial.println("Blynk not connected yet");
+    Serial.println(F("Blynk not connected yet"));
 
   // You need this timer for non-critical tasks. Avoid abusing ISR if not absolutely necessary.
   blynkTimer.setInterval(buttonInterval, checkButton);

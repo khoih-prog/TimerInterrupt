@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.1.1
+  Version: 1.1.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -27,11 +27,17 @@
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
 *****************************************************************************************************************************/
 
+#pragma once
 
 #ifndef ISR_TIMER_H
 #define ISR_TIMER_H
+
+#ifndef TIMER_INTERRUPT_VERSION
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.2"
+#endif
 
 #include <stddef.h>
 #include <inttypes.h>

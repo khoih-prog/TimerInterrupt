@@ -8,14 +8,88 @@
 [![star this repo](https://githubbadges.com/star.svg?user=khoih-prog&repo=TimerInterrupt)](https://github.com/khoih-prog/TimerInterrupt)
 [![fork this repo](https://githubbadges.com/fork.svg?user=khoih-prog&repo=TimerInterrupt)](https://github.com/khoih-prog/TimerInterrupt/fork)
 
+## Table of Contents
+
+* [Why do we need this TimerInterrupt library](#why-do-we-need-this-timerinterrupt-library)
+  * [Features](#features)
+  * [Why using ISR-based Hardware Timer Interrupt is better](#why-using-isr-based-hardware-timer-interrupt-is-better)
+  * [Currently supported Boards](#currently-supported-boards)
+  * [Important Notes about ISR](#important-notes-about-isr)
+* [Changelog](#changelog)
+  * [Releases v1.1.2](#releases-v111)
+  * [Releases v1.1.1](#releases-v111)
+  * [Releases v1.0.3](#releases-v103)
+  * [Releases v1.0.2](#releases-v102)
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+  * [Use Arduino Library Manager](#use-arduino-library-manager)
+  * [Manual Install](#manual-install)
+  * [VS Code & PlatformIO](#vs-code--platformio)
+* [HOWTO Fix `Multiple Definitions` Linker Error](#howto-fix-multiple-definitions-linker-error)
+* [More useful Information](#more-useful-information)
+  * [1. Timer0](#1-timer0)
+  * [2. Timer1](#2-timer1)
+  * [3. Timer2](#3-timer2)
+  * [4. Timer3, Timer4, Timer5](#4-timer3-timer4-timer5)
+  * [5. Important Notes](#5-important-notes)
+* [How to use](#how-to-use)
+* [Examples](#examples)
+  * [  1. Argument_Complex](examples/Argument_Complex)
+  * [  2. Argument_None](examples/Argument_None)
+  * [  3. Argument_Simple](examples/Argument_Simple)
+  * [  4. **Change_Interval**](examples/Change_Interval). New.
+  * [  5. **FakeAnalogWrite**](examples/FakeAnalogWrite).New.
+  * [  6. **ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex). New.
+  * [  7. ISR_RPM_Measure](examples/ISR_RPM_Measure)
+  * [  8. ISR_Switch](examples/ISR_Switch)
+  * [  9. ISR_Timer_Complex](examples/ISR_Timer_Complex)
+  * [ 10. **ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple). New.
+  * [ 11. ISR_Timer_Switch](examples/ISR_Timer_Switch)
+  * [ 12. ISR_Timer_Switches](examples/ISR_Timer_Switches)
+  * [ 13. RPM_Measure](examples/RPM_Measure)
+  * [ 14. SwitchDebounce](examples/SwitchDebounce)
+  * [ 15. TimerDuration](examples/TimerDuration)
+  * [ 16. TimerInterruptTest](examples/TimerInterruptTest)
+* [Example ISR_16_Timers_Array_Complex](#example-isr_16_timers_array_complex)
+* [Debug Terminal Output Samples](#debug-terminal-output-samples)
+  * [1. ISR_16_Timers_Array_Complex on Arduino AVR Nano-V3 board](#1-isr_16_timers_array_complex-on-arduino-avr-nano-v3-board)
+  * [2. Change_Interval on Arduino AVR Mega2560 board](#2-change_interval-on-arduino-avr-mega2560-board)
+* [Debug](#debug)
+* [Troubleshooting](#troubleshooting)
+* [Releases](#releases)
+* [Issues](#issues)
+* [TO DO](#to-do)
+* [DONE](#done)
+* [Contributions and Thanks](#contributions-and-thanks)
+* [Contributing](#contributing)
+* [License](#license)
+* [Copyright](#copyright)
+
 ---
 ---
 
-This library enables you to use Interrupt from Hardware Timers on an Arduino, such as Nano, UNO, Mega, etc.
+### Why do we need this [TimerInterrupt library](https://github.com/khoih-prog/TimerInterrupt)
+
+#### Features
+
+This library enables you to use Interrupt from Hardware Timers on an Arduino AVR board, such as Nano, UNO, Mega, etc.
 
 As **Hardware Timers are rare, and very precious assets** of any board, this library now enables you to use up to **16 ISR-based Timers, while consuming only 1 Hardware Timer**. Timers' interval is very long (**ulong millisecs**).
 
-### Why do we need this Hardware Timer Interrupt?
+Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds) while **the accuracy is nearly perfect** compared to software timers. 
+
+The most important feature is they're ISR-based timers. Therefore, their executions are **not blocked by bad-behaving functions / tasks**. This important feature is absolutely necessary for mission-critical tasks. 
+
+The [**ISR_Timer_Complex**](examples/ISR_Timer_Complex) example will demonstrate the nearly perfect accuracy compared to software timers by printing the actual elapsed millisecs of each type of timers.
+
+Being ISR-based timers, their executions are not blocked by bad-behaving functions / tasks, such as connecting to WiFi, Internet and Blynk services. You can also have many `(up to 16)` timers to use.
+
+This non-being-blocked important feature is absolutely necessary for mission-critical tasks.
+
+You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
+in loop(), using delay() function as an example. The elapsed time then is very unaccurate
+
+#### Why using ISR-based Hardware Timer Interrupt is better
 
 Imagine you have a system with a **mission-critical function**, measuring water level and control the sump pump or doing something much more important. You normally use a **software timer to poll**, or even place the function in loop(). But what if another function is blocking the loop() or setup().
 
@@ -33,45 +107,13 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 [**HOWTO Attach Interrupt**](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)
 
----
-
-### Important Notes:
+### Important Notes about ISR
 
 1. Inside the attached function, delay() won’t work and the value returned by millis() will not increment. Serial data received while in the function may be lost. You should declare as volatile any variables that you modify within the attached function.
 
 2. Typically global variables are used to pass data between an ISR and the main program. To make sure variables shared between an ISR and the main program are updated correctly, declare them as volatile.
 
-
----
----
-
-### Releases v1.1.1
-
-1. Add example [**Change_Interval**](examples/Change_Interval)
-2. Bump up version to sync with other TimerInterrupt Libraries. Modify Version String.
-3. Add new h-only code besides conventional h/cpp code
-
-### Release v1.0.3
-
-1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
-
-### Release v1.0.2
-
-Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds)
-**The accuracy is nearly perfect** compared to software timers. The most important feature is they're ISR-based timers
-Therefore, their executions are **not blocked by bad-behaving functions / tasks**. This important feature is absolutely necessary for mission-critical tasks. 
-
-The [**ISR_Timer_Complex**](examples/ISR_Timer_Complex) example will demonstrate the nearly perfect accuracy compared to software timers by printing the actual elapsed millisecs of each type of timers.
-Being ISR-based timers, their executions are not blocked by bad-behaving functions / tasks, such as connecting to WiFi, Internet and Blynk services. You can also have many `(up to 16)` timers to use.
-
-This non-being-blocked important feature is absolutely necessary for mission-critical tasks.
-
-You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
-in loop(), using delay() function as an example. The elapsed time then is very unaccurate
-
----
-
-### Supported Arduino Boards
+### Currently supported Boards
 
 - Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
 - Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
@@ -80,6 +122,33 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 - ATmega8535, 16, 32, 164, 324, 644, 1284,
 - ATmega64, 128
 - ATtiny 84 / 85
+
+---
+---
+
+## Changelog
+
+### Releases v1.1.2
+
+1. Fix compiler warnings.
+2. Optimize examples to reduce memory usage by using Flash String whenever possible.
+3. Clean-up all compiler warnings possible.
+4. Add Table of Contents
+
+
+### Releases v1.1.1
+
+1. Add example [**Change_Interval**](examples/Change_Interval)
+2. Bump up version to sync with other TimerInterrupt Libraries. Modify Version String.
+3. Add new h-only code besides conventional h/cpp code
+
+### Releases v1.0.3
+
+1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
+
+### Releases v1.0.2
+
+1. Intial releases.
 
 ---
 ---
@@ -168,39 +237,7 @@ In the Arduino work the tone() function uses Timer2.
 
 Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16-bit timers.
 
----
----
-
-## New from v1.0.2
-
-Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds)
-**The accuracy is nearly perfect** compared to software timers. The most important feature is they're ISR-based timers
-Therefore, their executions are **not blocked by bad-behaving functions / tasks**. This important feature is absolutely necessary for mission-critical tasks. 
-
-The [**ISR_Timer_Complex**](examples/ISR_Timer_Complex) example will demonstrate the nearly perfect accuracy compared to software timers by printing the actual elapsed millisecs of each type of timers.
-Being ISR-based timers, their executions are not blocked by bad-behaving functions / tasks, such as connecting to WiFi, Internet and Blynk services. You can also have many `(up to 16)` timers to use.
-
-This non-being-blocked important feature is absolutely necessary for mission-critical tasks.
-
-You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
-in loop(), using delay() function as an example. The elapsed time then is very unaccurate
-
----
-
-## Supported Arduino Boards
-
-- Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
-- Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
-- Sanguino
-- ATmega8, 48, 88, 168, 328
-- ATmega8535, 16, 32, 164, 324, 644, 1284,
-- ATmega64, 128
-- ATtiny 84 / 85
-
----
-
-
-## Usage
+#### 5. Important Notes
 
 Before using any Timer, you have to make sure the **Timer has not been used by any other purpose.**
 
@@ -214,7 +251,8 @@ Timer3, Timer4 and Timer5 are only available for Arduino Mega boards.
 ### How to use
 
 ```
-//These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     true
@@ -251,7 +289,7 @@ void TimerHandler2(void)
     started = true;
     pinMode(A0, OUTPUT);
   }
-  
+
   //timer interrupt toggles outputPin
   digitalWrite(A0, toggle2);
   toggle2 = !toggle2;
@@ -264,32 +302,42 @@ void TimerHandler2(void)
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("\nStarting");
+  while (!Serial);
+
+  Serial.println(F("\nStarting Argument_None"));
+  Serial.println(TIMER_INTERRUPT_VERSION);
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   // Select Timer 1-2 for UNO, 0-5 for MEGA
   // Timer 2 is 8-bit timer, only for higher frequency
   ITimer1.init();
-   
-  // Using ATmega328 used in UNO => 16MHz CPU clock , 
-  
+
+  // Using ATmega328 used in UNO => 16MHz CPU clock ,
+  // For 16-bit timer 1, 3, 4 and 5, set frequency from 0.2385 to some KHz
+  // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
+
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
-    Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer1. Select another freq. or timer");
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
   // Select Timer 1-2 for UNO, 0-5 for MEGA
   // Timer 2 is 8-bit timer, only for higher frequency
   ITimer2.init();
-      
+
   if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
-    Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer2. Select another freq. or timer");
+    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
 }
 
 void loop()
 {
-  
+
 }
 
 ```
@@ -301,25 +349,38 @@ void loop()
 
  1. [Argument_Complex](examples/Argument_Complex)
  2. [Argument_None](examples/Argument_None)
- 3. [Argument_Simple](examples/Argument_Simple) 
- 4. [ISR_RPM_Measure](examples/ISR_RPM_Measure) 
- 5. [ISR_Switch](examples/ISR_Switch)
- 6. [ISR_Timer_Complex](examples/ISR_Timer_Complex)
- 7. [ISR_Timer_Switch](examples/ISR_Timer_Switch)
- 8. [ISR_Timer_Switches](examples/ISR_Timer_Switches) 
- 9. [RPM_Measure](examples/RPM_Measure)
-10. [SwitchDebounce](examples/SwitchDebounce)
-11. [TimerDuration](examples/TimerDuration)
-12. [TimerInterruptTest](examples/TimerInterruptTest)
-13. [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex). New.
-14. [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple). New.
-15. [**Change_Interval**](examples/Change_Interval). New.
+ 3. [Argument_Simple](examples/Argument_Simple)
+ 4. [**Change_Interval**](examples/Change_Interval). New.
+ 5. [**FakeAnalogWrite**](examples/FakeAnalogWrite).New.
+ 6. [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex). New.
+ 7. [ISR_RPM_Measure](examples/ISR_RPM_Measure)
+ 8. [ISR_Switch](examples/ISR_Switch)
+ 9. [ISR_Timer_Complex](examples/ISR_Timer_Complex)
+10. [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple). New.
+11. [ISR_Timer_Switch](examples/ISR_Timer_Switch)
+12. [ISR_Timer_Switches](examples/ISR_Timer_Switches)
+13. [RPM_Measure](examples/RPM_Measure)
+14. [SwitchDebounce](examples/SwitchDebounce)
+15. [TimerDuration](examples/TimerDuration)
+16. [TimerInterruptTest](examples/TimerInterruptTest)
 
 ---
 
 ### Example [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex)
 
 ```cpp
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     false
@@ -558,15 +619,20 @@ void simpleTimerDoingSomething2s()
 
   unsigned long currMillis = millis();
 
-  //Serial.printf("SimpleTimer : %lus, ms = %lu, Dms : %lu\n", SIMPLE_TIMER_MS / 1000, currMillis, currMillis - previousMillis);
-  Serial.println("SimpleTimer : " + String(SIMPLE_TIMER_MS / 1000) + ", ms : " + String(currMillis) + ", Dms : " + String(currMillis - previousMillis));
+  Serial.print(F("SimpleTimer : "));Serial.print(SIMPLE_TIMER_MS / 1000);
+  Serial.print(F(", ms : ")); Serial.print(currMillis);
+  Serial.print(F(", Dms : ")); Serial.println(currMillis - previousMillis);
 
-  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  for (uint16_t i = 0; i < NUMBER_ISR_TIMERS; i++)
   {
 #if USE_COMPLEX_STRUCT    
-    Serial.println("Timer : " +String(i) + ", programmed : " + String(curISRTimerData[i].TimerInterval) + ", actual : " + String(curISRTimerData[i].deltaMillis));
+    Serial.print(F("Timer : ")); Serial.print(i);
+    Serial.print(F(", programmed : ")); Serial.print(curISRTimerData[i].TimerInterval);
+    Serial.print(F(", actual : ")); Serial.println(curISRTimerData[i].deltaMillis);
 #else
-    Serial.println("Timer : " +String(i) + ", programmed : " + String(TimerInterval[i]) + ", actual : " + String(deltaMillis[i]));
+    Serial.print(F("Timer : ")); Serial.print(i);
+    Serial.print(F(", programmed : ")); Serial.print(TimerInterval[i]);
+    Serial.print(F(", actual : ")); Serial.println(deltaMillis[i]);
 #endif    
   }
 
@@ -580,23 +646,25 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting ISR_16_Timers_Array_Complex");
+  Serial.println(F("\nStarting ISR_16_Timers_Array_Complex"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   ITimer2.init();
 
   if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
-    Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer2. Select another freq., duration or timer"); 
+    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
 
   //ISR_Timer2.setInterval(2000L, doingSomething2s);
   //ISR_Timer2.setInterval(5000L, doingSomething5s);
 
   // Just to demonstrate, don't use too many ISR Timers if not absolutely necessary
   // You can use up to 16 timer for each ISR_Timer
-  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  for (uint16_t i = 0; i < NUMBER_ISR_TIMERS; i++)
   {
 #if USE_COMPLEX_STRUCT
     curISRTimerData[i].previousMillis = startMillis;
@@ -632,13 +700,15 @@ void loop()
 
 ### Debug Terminal Output Samples
 
-1. The following is the sample terminal output when running example [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex) on **Arduino Nano V3** to demonstrate the accuracy of ISR Hardware Timer, **especially when system is very busy**.  The ISR timer is **programmed for 2s, is activated exactly after 2.000s !!!**
+### 1. ISR_16_Timers_Array_Complex on Arduino AVR Nano-V3 board
+
+The following is the sample terminal output when running example [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex) on **Arduino Nano V3** to demonstrate the accuracy of ISR Hardware Timer, **especially when system is very busy**.  The ISR timer is **programmed for 2s, is activated exactly after 2.000s !!!**
 
 While software timer, **programmed for 2s, is activated after more than 10.000s in loop().
 
 ```
-Starting ISR_16_Timers_Array_Complex
-TimerInterrupt v1.1.1
+Starting ISR_16_Timers_Array_Complex on AVR
+TimerInterrupt v1.1.2
 CPU Frequency = 16 MHz
 Starting  ITimer2 OK, millis() = 1
 SimpleTimer : 2, ms : 10007, Dms : 10007
@@ -782,11 +852,13 @@ Timer : 15, programmed : 80000, actual : 80010
 
 ---
 
-2. The following is the sample terminal output when running example [Change_Interval](examples/Change_Interval) on AVR Mega2560 to demonstrate how to change Timer Interval on-the-fly
+### 2. Change_Interval on Arduino AVR Mega2560 board
+
+The following is the sample terminal output when running example [Change_Interval](examples/Change_Interval) on **AVR Mega2560** to demonstrate how to change Timer Interval on-the-fly
 
 ```
 Starting Change_Interval on AVR
-TimerInterrupt v1.1.1
+TimerInterrupt v1.1.2
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 1
 Starting  ITimer2 OK, millis() = 4
@@ -804,9 +876,42 @@ Time = 80009, Timer1Count = 588, Timer2Count = 296
 Changing Interval, Timer1 = 100,  Timer2 = 200
 ```
 
+---
+---
+
+
+### Debug
+
+Debug is enabled by default on Serial.
+
+You can also change the debugging level from 0 to 3
+
+```cpp
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
+#define TIMER_INTERRUPT_DEBUG      0
+```
+
+---
+
+### Troubleshooting
+
+If you get compilation errors, more often than not, you may need to install a newer version of the core for Arduino boards.
+
+Sometimes, the library will only work if you update the board core to the latest version because I am using newly added functions.
+
 
 ---
 ---
+
+## Releases
+
+### Releases v1.1.2
+
+1. Fix compiler warnings.
+2. Optimize examples to reduce memory usage by using Flash String whenever possible.
+3. Clean-up all compiler warnings possible.
+4. Add Table of Contents
 
 ### Releases v1.1.1
 
@@ -847,10 +952,11 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 ---
 ---
 
-### Issues ###
+### Issues
 
 Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInterrupt/issues)
 
+---
 ---
 
 ### TO DO
@@ -859,8 +965,6 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 
 
 ### DONE
-
-For current version v1.0.2
 
 1. Longer Interval for timers.
 2. Reduce code size if use less timers. Eliminate compiler warnings.
@@ -876,7 +980,15 @@ For current version v1.0.2
 
 ### Contributions and Thanks
 
-Many thanks for everyone for bug reporting, new feature suggesting, testing and contributing to the development of this library.
+Many thanks for everyone for bug reporting, new feature suggesting, testing and contributing to the development of this library. Especially to these people who have directly or indirectly contributed to this [TimerInterrupt library](https://github.com/khoih-prog/TimerInterrupt)
+
+1. Thanks to [Django0](https://github.com/Django0) to provide the following PR [Fixed warnings from cppcheck (platformio) and -Wall arduino-cli. PR#10](https://github.com/khoih-prog/TimerInterrupt/pull/10).
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/Django0"><img src="https://github.com/Django0.png" width="100px;" alt="Django0"/><br /><sub><b>Django0</b></sub></a><br /></td>
+  </tr> 
+</table>
 
 ---
 
@@ -890,7 +1002,7 @@ If you want to contribute to this project:
 
 ---
 
-## License and credits
+## License
 
 - The library is licensed under [MIT](https://github.com/khoih-prog/TimerInterrupt/blob/master/LICENSE)
 

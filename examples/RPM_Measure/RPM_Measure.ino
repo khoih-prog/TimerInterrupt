@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
   
-  Version: 1.1.0
+  Version: 1.1.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -31,6 +31,7 @@
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
  *****************************************************************************************************************************/
 /* RPM Measuring uses high frequency hardware timer 1Hz == 1ms) to measure the time from of one rotation, in ms
    then convert to RPM. One rotation is detected by reading the state of a magnetic REED SW or IR LED Sensor
@@ -43,9 +44,19 @@
    then use timer to count the time between active state
 */
 
-//These define's must be placed at the beginning before #include "TimerInterrupt.h"
-// Don't define TIMER_INTERRUPT_DEBUG > 2. Only for special ISR debugging only. Can hang the system.
-#define TIMER_INTERRUPT_DEBUG      1
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
+#define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     true
 #define USE_TIMER_2     false
@@ -87,7 +98,10 @@ void TimerHandler1()
 
     avgRPM = ( 2 * avgRPM + RPM) / 3,
 
-    Serial.println("RPM = " + String(RPM) + ", rotationTime ms = " + String(rotationTime * TIMER1_INTERVAL_MS) );
+#if (TIMER_INTERRUPT_DEBUG > 1)
+      Serial.print("RPM = "); Serial.print(avgRPM);
+      Serial.print(", rotationTime ms = "); Serial.println(rotationTime * TIMER1_INTERVAL_MS);
+#endif
 
     rotationTime = 0;
     debounceCounter = 0;
@@ -101,7 +115,11 @@ void TimerHandler1()
   {
     // If idle, set RPM to 0, don't increase rotationTime
     RPM = 0;
-    Serial.println("RPM = " + String(RPM) + ", rotationTime = " + String(rotationTime) );
+    
+#if (TIMER_INTERRUPT_DEBUG > 1)   
+    Serial.print("RPM = "); Serial.print(RPM); Serial.print(", rotationTime = "); Serial.println(rotationTime);
+#endif
+    
     rotationTime = 0;
   }
   else
@@ -116,9 +134,9 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting RPM_Measure");
+  Serial.println(F("\nStarting RPM_Measure on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   // Timer0 is used for micros(), millis(), delay(), etc and can't be used
   // Select Timer 1-2 for UNO, 0-5 for MEGA
@@ -129,9 +147,11 @@ void setup()
   // Using ATmega328 used in UNO => 16MHz CPU clock ,
 
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
-    Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer1. Select another freq., duration or timer");
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 }
 
 void loop()

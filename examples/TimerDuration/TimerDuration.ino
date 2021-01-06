@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
   
-  Version: 1.1.0
+  Version: 1.1.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -31,11 +31,22 @@
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
  *****************************************************************************************************************************/
 
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
 //These define's must be placed at the beginning before #include "TimerInterrupt.h"
-// Don't define TIMER_INTERRUPT_DEBUG > 2. Only for special ISR debugging only. Can hang the system.
-#define TIMER_INTERRUPT_DEBUG      0
+// Don't define TIMER_INTERRUPT_DEBUG 0 2. Only for special ISR debugging only. Can hang the system.
+#define TIMER_INTERRUPT_DEBUG      1
 
 #define USE_TIMER_1     true
 #define USE_TIMER_2     true
@@ -57,7 +68,9 @@ void TimerHandler1(unsigned int outputPin = LED_BUILTIN)
     pinMode(outputPin, OUTPUT);
   }
 
-  Serial.println("ITimer1 called, millis() = " + String(millis()));
+#if (TIMER_INTERRUPT_DEBUG > 1)
+  Serial.print("ITimer1 called, millis() = "); Serial.println(millis());
+#endif
 
   //timer interrupt toggles pin LED_BUILTIN
   digitalWrite(outputPin, toggle1);
@@ -75,7 +88,9 @@ void TimerHandler2(unsigned int outputPin = LED_BUILTIN)
     pinMode(outputPin, OUTPUT);
   }
 
-  Serial.println("ITimer2 called, millis() = " + String(millis()));
+#if (TIMER_INTERRUPT_DEBUG > 1)
+  Serial.print("ITimer2 called, millis() = "); Serial.println(millis());
+#endif
 
   //timer interrupt toggles outputPin
   digitalWrite(outputPin, toggle2);
@@ -98,9 +113,9 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting TimerDuration");
+  Serial.println(F("\nStarting TimerDuration on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   // Timer0 is used for micros(), millis(), delay(), etc and can't be used
   // Select Timer 1-2 for UNO, 0-5 for MEGA
@@ -112,17 +127,21 @@ void setup()
 
   //if (ITimer1.attachInterrupt(TIMER1_FREQUENCY, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
   if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1, outputPin1, TIMER1_DURATION_MS))
-    Serial.println("Starting  ITimer1 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer1. Select another freq., duration or timer");
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
   ITimer2.init();
 
   //if (ITimer2.attachInterrupt(TIMER2_FREQUENCY, TimerHandler2, outputPin2, TIMER2_DURATION_MS))
   if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2, outputPin2, TIMER2_DURATION_MS))
-    Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer2. Select another freq., duration or timer");
+    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
 }
 
 void loop()

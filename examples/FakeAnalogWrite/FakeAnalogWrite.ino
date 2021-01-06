@@ -21,6 +21,17 @@
   if the interrupt changes a multi-byte variable between a sequence of instructions, it can be read incorrectly.
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
+
+  Version: 1.1.2
+
+  Version Modified By   Date      Comments
+  ------- -----------  ---------- -----------
+  1.0.0   K Hoang      23/11/2019 Initial coding
+  1.0.1   K Hoang      25/11/2019 New release fixing compiler error
+  1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
+  1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
+  1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
 *****************************************************************************************************************************/
 /*
    Notes:
@@ -52,6 +63,8 @@
   #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
 #endif
   
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     false
@@ -99,7 +112,7 @@ void TimerHandler(void)
   static bool toggle  = false;
   static uint32_t timeRun  = 0;
 
-  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  for (uint16_t i = 0; i < NUMBER_ISR_TIMERS; i++)
   {
     doingSomething(i);
   }
@@ -127,9 +140,9 @@ typedef void (*irqCallback)  (void);
 typedef struct
 {
   int16_t       PWM_Value;          // Writing negative value to stop and free this PWM
-  int16_t       PWM_PremapValue;    // To detect if use the same PWM_Value setting => don't do anything
+  uint16_t      PWM_PremapValue;    // To detect if use the same PWM_Value setting => don't do anything
   uint16_t      pin;
-  uint32_t      countPWM;
+  int16_t       countPWM;
   bool          beingUsed;
 } ISRTimerData;
 
@@ -194,23 +207,23 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting FakeAnalogWrite on AVR board");
+  Serial.println(F("\nStarting FakeAnalogWrite on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.print("CPU Frequency = ");
-  Serial.print(F_CPU / 1000000);
-  Serial.println(" MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   ITimer2.init();
 
   //if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler))
   if (ITimer2.attachInterrupt(TIMER2_FREQUENCY_HZ, TimerHandler))
-    Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer2. Select another freq., duration or timer"); 
+    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
 
   // Just to demonstrate, don't use too many ISR Timers if not absolutely necessary
   // You can use up to 16 timer for each ISR_Timer
-  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  for (uint16_t i = 0; i < NUMBER_ISR_TIMERS; i++)
   {
     curISRTimerData[i].beingUsed      = false;
     curISRTimerData[i].pin            = 0;
@@ -225,10 +238,13 @@ void setup()
 void fakeAnalogWrite(uint16_t pin, uint16_t value)
 {
   uint16_t localValue;
+
+#if USING_MAPPING_TABLE  
   uint16_t localIndex = 0;
+#endif
 
   // First check if already got that pin, then just update the PWM_Value
-  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  for (uint16_t i = 0; i < NUMBER_ISR_TIMERS; i++)
   {
     if ( (curISRTimerData[i].beingUsed) && (curISRTimerData[i].pin == pin) )
     {
@@ -237,8 +253,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
       if (curISRTimerData[i].PWM_PremapValue == localValue)
       {
 #if (LOCAL_DEBUG > 0)
-        Serial.print("Ignore : Same Value for index = ");
-        Serial.println(i);
+        Serial.print(F("Ignore : Same Value for index = ")); Serial.println(i);
 #endif
 
         return;
@@ -259,7 +274,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
 #if USING_MAPPING_TABLE
 
           // Get the mapping index
-          for (int j = 0; j < MAPPING_TABLE_SIZE; j++)
+          for (uint16_t j = 0; j < MAPPING_TABLE_SIZE; j++)
           {
             if ( (float) localValue < mappingTable[j])
             {
@@ -269,8 +284,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
           }
 
 #if (LOCAL_DEBUG > 1)
-          Serial.print("localIndex = ");
-          Serial.println(localIndex);
+          Serial.print(F("localIndex = ")); Serial.println(localIndex);
 #endif
 
           // Can use map() function
@@ -283,14 +297,10 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
 #endif
 
 #if (LOCAL_DEBUG > 0)
-          Serial.print("Update index = ");
-          Serial.print(i);
-          Serial.print(", pin = ");
-          Serial.print(pin);
-          Serial.print(", input PWM_Value = ");
-          Serial.print(value);
-          Serial.print(", mapped PWM_Value = ");
-          Serial.println(curISRTimerData[i].PWM_Value);
+          Serial.print(F("Update index = ")); Serial.print(i);
+          Serial.print(F(", pin = ")); Serial.print(pin);
+          Serial.print(F(", input PWM_Value = ")); Serial.print(value);
+          Serial.print(F(", mapped PWM_Value = ")); Serial.println(curISRTimerData[i].PWM_Value);
 #endif
         }
       }
@@ -308,7 +318,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
     }
   }
 
-  for (int i = 0; i < NUMBER_ISR_TIMERS; i++)
+  for (uint16_t i = 0; i < NUMBER_ISR_TIMERS; i++)
   {
     if (!curISRTimerData[i].beingUsed)
     {
@@ -330,7 +340,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
 #if USING_MAPPING_TABLE
 
         // Get the mapping index
-        for (int j = 0; j < MAPPING_TABLE_SIZE; j++)
+        for (uint16_t j = 0; j < MAPPING_TABLE_SIZE; j++)
         {
           if ( (float) localValue < mappingTable[j])
           {
@@ -340,7 +350,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
         }
 
 #if (LOCAL_DEBUG > 1)
-        Serial.printf("localIndex = %d\n", localIndex);
+        Serial.print(F("localIndex = ")); Serial.println(localIndex);
 #endif
 
         // Can use map() function
@@ -357,14 +367,10 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
       pinMode(pin, OUTPUT);
 
 #if (LOCAL_DEBUG > 0)
-      Serial.print("Add index = ");
-      Serial.print(i);
-      Serial.print(", pin = ");
-      Serial.print(pin);
-      Serial.print(", input PWM_Value = ");
-      Serial.print(value);
-      Serial.print(", mapped PWM_Value = ");
-      Serial.println(curISRTimerData[i].PWM_Value);
+      Serial.print(F("Add index = ")); Serial.print(i);
+      Serial.print(F(", pin = ")); Serial.print(pin);
+      Serial.print(F(", input PWM_Value = ")); Serial.print(value);
+      Serial.print(F(", mapped PWM_Value = ")); Serial.println(curISRTimerData[i].PWM_Value);
 #endif
 
       return;
@@ -379,7 +385,7 @@ void fakeAnalogWrite(uint16_t pin, uint16_t value)
 
 void loop()
 {
-  for (int i = 0; i <= MAX_PWM_VALUE / DIVIDER; i++)
+  for (uint16_t i = 0; i <= MAX_PWM_VALUE / DIVIDER; i++)
   {
     // Change the pin according to board
     // UNI, Nano, etc can use pins from 2-12. Pin 13 is used for LED_BUILTIN
@@ -422,15 +428,13 @@ void loop()
 #endif
 
 #if (LOCAL_DEBUG > 0)
-    Serial.print("Test PWM_Value = ");
-    Serial.print(i * DIVIDER);
-    Serial.print(", max = ");
-    Serial.println(MAX_PWM_VALUE - 1);
+    Serial.print(F("Test PWM_Value = ")); Serial.print(i * DIVIDER);
+    Serial.print(F(", max = ")); Serial.println(MAX_PWM_VALUE - 1);
 #endif
 
     delay(DELAY_BETWEEN_CHANGE_MS);
   }
 
-  Serial.println("===================");
+  Serial.println(F("==================="));
   delay(REPEAT_INTERVAL_MS);
 }

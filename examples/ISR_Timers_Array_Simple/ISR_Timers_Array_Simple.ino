@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
 
-  Version: 1.1.0
+  Version: 1.1.2
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -31,8 +31,21 @@
   1.0.2   K.Hoang      28/11/2019 Permit up to 16 super-long-time, super-accurate ISR-based timers to avoid being blocked
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
+  1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
 *****************************************************************************************************************************/
 
+#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
+// These define's must be placed at the beginning before #include "TimerInterrupt.h"
+// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG      0
 
 #define USE_TIMER_1     false
@@ -118,10 +131,12 @@ void simpleTimerDoingSomething2s()
 
   unsigned long currMillis = millis();
 
-  Serial.println("SimpleTimer : programmed " + String(SIMPLE_TIMER_MS) + "ms, current time ms : " + String(currMillis) + ", Delta ms : " + String(currMillis - previousMillis));
+  Serial.print(F("SimpleTimer : programmed ")); Serial.print(SIMPLE_TIMER_MS);
+  Serial.print(F("ms, current time ms : ")); Serial.print(currMillis);
+  Serial.print(F(", Delta ms : ")); Serial.println(currMillis - previousMillis);
 
-  Serial.println("Timer2s actual : " + String(deltaMillis2s));
-  Serial.println("Timer5s actual : " + String(deltaMillis5s));
+  Serial.print(F("Timer2s actual : ")); Serial.println(deltaMillis2s);
+  Serial.print(F("Timer5s actual : ")); Serial.println(deltaMillis5s);
   
   previousMillis = currMillis;
 }
@@ -135,16 +150,18 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println("\nStarting ISR_Timers_Array_Simple");
+  Serial.println(F("\nStarting ISR_Timers_Array_Simple on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.println("CPU Frequency = " + String(F_CPU / 1000000) + " MHz");
+  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   ITimer2.init();
 
   if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
-    Serial.println("Starting  ITimer2 OK, millis() = " + String(millis()));
+  {
+    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+  }
   else
-    Serial.println("Can't set ITimer2. Select another freq., duration or timer");
+    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
 
   ISR_Timer2.setInterval(2000L, doingSomething2s);
   ISR_Timer2.setInterval(5000L, doingSomething5s);
