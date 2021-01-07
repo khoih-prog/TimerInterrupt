@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.1.2
+  Version: 1.2.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -28,6 +28,7 @@
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
+  1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
 *****************************************************************************************************************************/
 
 #include "ISR_Timer.h"
@@ -45,10 +46,12 @@ ISR_Timer::ISR_Timer()
 {
 }
 
-void ISR_Timer::init() {
+void ISR_Timer::init() 
+{
   unsigned long current_millis = millis();   //elapsed();
 
-  for (int i = 0; i < MAX_TIMERS; i++) {
+  for (uint8_t i = 0; i < MAX_TIMERS; i++) 
+  {
     memset((void*) &timer[i], 0, sizeof (timer_t));
     timer[i].prev_millis = current_millis;
   }
@@ -57,43 +60,47 @@ void ISR_Timer::init() {
 }
 
 
-void ISR_Timer::run() {
-  int i;
+void ISR_Timer::run() 
+{
+  uint8_t i;
   unsigned long current_millis;
 
   // get current time
   current_millis = millis();   //elapsed();
 
-  for (i = 0; i < MAX_TIMERS; i++) {
-
+  for (i = 0; i < MAX_TIMERS; i++) 
+  {
     timer[i].toBeCalled = DEFCALL_DONTRUN;
 
     // no callback == no timer, i.e. jump over empty slots
-    if (timer[i].callback != NULL) {
-
+    if (timer[i].callback != NULL) 
+    {
       // is it time to process this timer ?
       // see http://arduino.cc/forum/index.php/topic,124048.msg932592.html#msg932592
 
-      if ((current_millis - timer[i].prev_millis) >= timer[i].delay) {
-
+      if ((current_millis - timer[i].prev_millis) >= timer[i].delay) 
+      {
         unsigned long skipTimes = (current_millis - timer[i].prev_millis) / timer[i].delay;
         // update time
         timer[i].prev_millis += timer[i].delay * skipTimes;
 
         // check if the timer callback has to be executed
-        if (timer[i].enabled) {
-
+        if (timer[i].enabled) 
+        {
           // "run forever" timers must always be executed
-          if (timer[i].maxNumRuns == RUN_FOREVER) {
+          if (timer[i].maxNumRuns == RUN_FOREVER) 
+          {
             timer[i].toBeCalled = DEFCALL_RUNONLY;
           }
           // other timers get executed the specified number of times
-          else if (timer[i].numRuns < timer[i].maxNumRuns) {
+          else if (timer[i].numRuns < timer[i].maxNumRuns) 
+          {
             timer[i].toBeCalled = DEFCALL_RUNONLY;
             timer[i].numRuns++;
 
             // after the last run, delete the timer
-            if (timer[i].numRuns >= timer[i].maxNumRuns) {
+            if (timer[i].numRuns >= timer[i].maxNumRuns) 
+            {
               timer[i].toBeCalled = DEFCALL_RUNANDDEL;
             }
           }
@@ -102,7 +109,8 @@ void ISR_Timer::run() {
     }
   }
 
-  for (i = 0; i < MAX_TIMERS; i++) {
+  for (i = 0; i < MAX_TIMERS; i++) 
+  {
     if (timer[i].toBeCalled == DEFCALL_DONTRUN)
       continue;
 
@@ -119,15 +127,19 @@ void ISR_Timer::run() {
 
 // find the first available slot
 // return -1 if none found
-int ISR_Timer::findFirstFreeSlot() {
+int ISR_Timer::findFirstFreeSlot() 
+{
   // all slots are used
-  if (numTimers >= MAX_TIMERS) {
+  if (numTimers >= MAX_TIMERS) 
+  {
     return -1;
   }
 
   // return the first slot with no callback (i.e. free)
-  for (int i = 0; i < MAX_TIMERS; i++) {
-    if (timer[i].callback == NULL) {
+  for (uint8_t i = 0; i < MAX_TIMERS; i++) 
+  {
+    if (timer[i].callback == NULL) 
+    {
       return i;
     }
   }
@@ -140,26 +152,30 @@ int ISR_Timer::findFirstFreeSlot() {
 int ISR_Timer::setupTimer(unsigned long d, void* f, void* p, bool h, unsigned n) {
   int freeTimer;
 
-  if (numTimers < 0) {
+  if (numTimers < 0) 
+  {
     init();
   }
 
   freeTimer = findFirstFreeSlot();
-  if (freeTimer < 0) {
+  
+  if (freeTimer < 0) 
+  {
     return -1;
   }
 
-  if (f == NULL) {
+  if (f == NULL) 
+  {
     return -1;
   }
 
-  timer[freeTimer].delay = d;
-  timer[freeTimer].callback = f;
-  timer[freeTimer].param = p;
-  timer[freeTimer].hasParam = h;
-  timer[freeTimer].maxNumRuns = n;
-  timer[freeTimer].enabled = true;
-  timer[freeTimer].prev_millis = elapsed();
+  timer[freeTimer].delay        = d;
+  timer[freeTimer].callback     = f;
+  timer[freeTimer].param        = p;
+  timer[freeTimer].hasParam     = h;
+  timer[freeTimer].maxNumRuns   = n;
+  timer[freeTimer].enabled      = true;
+  timer[freeTimer].prev_millis  = elapsed();
 
   numTimers++;
 
@@ -167,58 +183,72 @@ int ISR_Timer::setupTimer(unsigned long d, void* f, void* p, bool h, unsigned n)
 }
 
 
-int ISR_Timer::setTimer(unsigned long d, timer_callback f, unsigned n) {
+int ISR_Timer::setTimer(unsigned long d, timer_callback f, unsigned n) 
+{
   return setupTimer(d, (void *)f, NULL, false, n);
 }
 
-int ISR_Timer::setTimer(unsigned long d, timer_callback_p f, void* p, unsigned n) {
+int ISR_Timer::setTimer(unsigned long d, timer_callback_p f, void* p, unsigned n) 
+{
   return setupTimer(d, (void *)f, p, true, n);
 }
 
-int ISR_Timer::setInterval(unsigned long d, timer_callback f) {
+int ISR_Timer::setInterval(unsigned long d, timer_callback f) 
+{
   return setupTimer(d, (void *)f, NULL, false, RUN_FOREVER);
 }
 
-int ISR_Timer::setInterval(unsigned long d, timer_callback_p f, void* p) {
+int ISR_Timer::setInterval(unsigned long d, timer_callback_p f, void* p) 
+{
   return setupTimer(d, (void *)f, p, true, RUN_FOREVER);
 }
 
-int ISR_Timer::setTimeout(unsigned long d, timer_callback f) {
+int ISR_Timer::setTimeout(unsigned long d, timer_callback f) 
+{
   return setupTimer(d, (void *)f, NULL, false, RUN_ONCE);
 }
 
-int ISR_Timer::setTimeout(unsigned long d, timer_callback_p f, void* p) {
+int ISR_Timer::setTimeout(unsigned long d, timer_callback_p f, void* p) 
+{
   return setupTimer(d, (void *)f, p, true, RUN_ONCE);
 }
 
-bool ISR_Timer::changeInterval(unsigned numTimer, unsigned long d) {
-  if (numTimer >= MAX_TIMERS) {
+bool ISR_Timer::changeInterval(unsigned numTimer, unsigned long d) 
+{
+  if (numTimer >= MAX_TIMERS) 
+  {
     return false;
   }
 
   // Updates interval of existing specified timer
-  if (timer[numTimer].callback != NULL) {
+  if (timer[numTimer].callback != NULL) 
+  {
     timer[numTimer].delay = d;
     timer[numTimer].prev_millis = elapsed();
     return true;
   }
+  
   // false return for non-used numTimer, no callback
   return false;
 }
 
-void ISR_Timer::deleteTimer(unsigned timerId) {
-  if (timerId >= MAX_TIMERS) {
+void ISR_Timer::deleteTimer(unsigned timerId) 
+{
+  if (timerId >= MAX_TIMERS) 
+  {
     return;
   }
 
   // nothing to delete if no timers are in use
-  if (numTimers == 0) {
+  if (numTimers == 0) 
+  {
     return;
   }
 
   // don't decrease the number of timers if the
   // specified slot is already empty
-  if (timer[timerId].callback != NULL) {
+  if (timer[timerId].callback != NULL) 
+  {
     memset((void*) &timer[timerId], 0, sizeof (timer_t));
     timer[timerId].prev_millis = elapsed();
 
@@ -229,8 +259,10 @@ void ISR_Timer::deleteTimer(unsigned timerId) {
 
 
 // function contributed by code@rowansimms.com
-void ISR_Timer::restartTimer(unsigned numTimer) {
-  if (numTimer >= MAX_TIMERS) {
+void ISR_Timer::restartTimer(unsigned numTimer) 
+{
+  if (numTimer >= MAX_TIMERS) 
+  {
     return;
   }
 
@@ -238,8 +270,10 @@ void ISR_Timer::restartTimer(unsigned numTimer) {
 }
 
 
-bool ISR_Timer::isEnabled(unsigned numTimer) {
-  if (numTimer >= MAX_TIMERS) {
+bool ISR_Timer::isEnabled(unsigned numTimer) 
+{
+  if (numTimer >= MAX_TIMERS) 
+  {
     return false;
   }
 
@@ -247,8 +281,10 @@ bool ISR_Timer::isEnabled(unsigned numTimer) {
 }
 
 
-void ISR_Timer::enable(unsigned numTimer) {
-  if (numTimer >= MAX_TIMERS) {
+void ISR_Timer::enable(unsigned numTimer) 
+{
+  if (numTimer >= MAX_TIMERS) 
+  {
     return;
   }
 
@@ -256,34 +292,44 @@ void ISR_Timer::enable(unsigned numTimer) {
 }
 
 
-void ISR_Timer::disable(unsigned numTimer) {
-  if (numTimer >= MAX_TIMERS) {
+void ISR_Timer::disable(unsigned numTimer) 
+{
+  if (numTimer >= MAX_TIMERS) 
+  {
     return;
   }
 
   timer[numTimer].enabled = false;
 }
 
-void ISR_Timer::enableAll() {
+void ISR_Timer::enableAll() 
+{
   // Enable all timers with a callback assigned (used)
-  for (int i = 0; i < MAX_TIMERS; i++) {
-    if (timer[i].callback != NULL && timer[i].numRuns == RUN_FOREVER) {
+  for (uint8_t i = 0; i < MAX_TIMERS; i++) 
+  {
+    if (timer[i].callback != NULL && timer[i].numRuns == RUN_FOREVER) 
+    {
       timer[i].enabled = true;
     }
   }
 }
 
-void ISR_Timer::disableAll() {
+void ISR_Timer::disableAll() 
+{
   // Disable all timers with a callback assigned (used)
-  for (int i = 0; i < MAX_TIMERS; i++) {
-    if (timer[i].callback != NULL && timer[i].numRuns == RUN_FOREVER) {
+  for (uint8_t i = 0; i < MAX_TIMERS; i++) 
+  {
+    if (timer[i].callback != NULL && timer[i].numRuns == RUN_FOREVER) 
+    {
       timer[i].enabled = false;
     }
   }
 }
 
-void ISR_Timer::toggle(unsigned numTimer) {
-  if (numTimer >= MAX_TIMERS) {
+void ISR_Timer::toggle(unsigned numTimer) 
+{
+  if (numTimer >= MAX_TIMERS) 
+  {
     return;
   }
 
@@ -291,6 +337,7 @@ void ISR_Timer::toggle(unsigned numTimer) {
 }
 
 
-unsigned ISR_Timer::getNumTimers() {
+unsigned ISR_Timer::getNumTimers() 
+{
   return numTimers;
 }

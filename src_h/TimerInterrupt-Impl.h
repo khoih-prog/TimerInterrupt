@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.1.2
+  Version: 1.2.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -28,6 +28,7 @@
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
+  1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
 ****************************************************************************************************************************/
 
 #pragma once
@@ -38,22 +39,22 @@
 //#include "TimerInterrupt.h"
 
 #ifndef TIMER_INTERRUPT_DEBUG
-#define TIMER_INTERRUPT_DEBUG      0
+  #define TIMER_INTERRUPT_DEBUG      0
 #endif
 
 void TimerInterrupt::init(int8_t timer)
-{
+{    
   // Set timer specific stuff
   // All timers in CTC mode
   // 8 bit timers will require changing prescalar values,
   // whereas 16 bit timers are set to either ck/1 or ck/64 prescalar
-
+  
   //cli();//stop interrupts
   noInterrupts();
-
+  
   switch (timer)
-  {
-#if defined(TCCR1A) && defined(TCCR1B) && defined(WGM12)
+  {    
+    #if defined(TCCR1A) && defined(TCCR1B) && defined(WGM12)
     case 1:
       // 16 bit timer
       TCCR1A = 0;
@@ -64,14 +65,12 @@ void TimerInterrupt::init(int8_t timer)
       // No scaling now
       bitWrite(TCCR1B, CS10, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T1");
-#endif
-
+      TISR_LOGWARN(F("T1"));
+      
       break;
-#endif
+    #endif
 
-#if defined(TCCR2A) && defined(TCCR2B)
+    #if defined(TCCR2A) && defined(TCCR2B)
     case 2:
       // 8 bit timer
       TCCR2A = 0;
@@ -82,14 +81,12 @@ void TimerInterrupt::init(int8_t timer)
       // No scaling now
       bitWrite(TCCR2B, CS20, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T2");
-#endif
-
+      TISR_LOGWARN(F("T2"));
+      
       break;
-#endif
+    #endif
 
-#if defined(TCCR3A) && defined(TCCR3B) &&  defined(TIMSK3)
+    #if defined(TCCR3A) && defined(TCCR3B) &&  defined(TIMSK3)
     case 3:
       // 16 bit timer
       TCCR3A = 0;
@@ -97,35 +94,31 @@ void TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR3B, WGM32, 1);
       bitWrite(TCCR3B, CS30, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T3");
-#endif
-
+      TISR_LOGWARN(F("T3"));
+      
       break;
-#endif
+    #endif  
 
-#if defined(TCCR4A) && defined(TCCR4B) &&  defined(TIMSK4)
+    #if defined(TCCR4A) && defined(TCCR4B) &&  defined(TIMSK4)
     case 4:
       // 16 bit timer
       TCCR4A = 0;
       TCCR4B = 0;
-#if defined(WGM42)
-      bitWrite(TCCR4B, WGM42, 1);
-#elif defined(CS43)
-      // TODO this may not be correct
-      // atmega32u4
-      bitWrite(TCCR4B, CS43, 1);
-#endif
+      #if defined(WGM42)
+        bitWrite(TCCR4B, WGM42, 1);
+      #elif defined(CS43)
+        // TODO this may not be correct
+        // atmega32u4
+        bitWrite(TCCR4B, CS43, 1);
+      #endif
       bitWrite(TCCR4B, CS40, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T4");
-#endif
-
+      TISR_LOGWARN(F("T4"));
+      
       break;
-#endif
+    #endif
 
-#if defined(TCCR5A) && defined(TCCR5B) &&  defined(TIMSK5)
+    #if defined(TCCR5A) && defined(TCCR5B) &&  defined(TIMSK5)
     case 5:
       // 16 bit timer
       TCCR5A = 0;
@@ -133,19 +126,17 @@ void TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR5B, WGM52, 1);
       bitWrite(TCCR5B, CS50, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("T5");
-#endif
-
+      TISR_LOGWARN(F("T5"));
+      
       break;
-#endif
+    #endif
   }
 
   _timer = timer;
 
   //sei();//enable interrupts
   interrupts();
-
+  
 }
 
 void TimerInterrupt::set_OCR()
@@ -238,17 +229,16 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
   {
     return false;
   }
-  else
-  {
+  else      
+  {       
     // Calculate the toggle count. Duration must be at least longer then one cycle
     if (duration > 0)
-    {
+    {   
       _toggle_count = frequency * duration / 1000;
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("setFrequency => _toggle_count = " + String(_toggle_count) + ", frequency = " + String(frequency) + ", duration = " + String(duration));
-#endif
-
+      TISR_LOGWARN1(F("setFrequency => _toggle_count ="), _toggle_count);
+      TISR_LOGWARN3(F("Frequency ="), frequency, F(", duration ="), duration);
+           
       if (_toggle_count < 1)
       {
         return false;
@@ -258,32 +248,30 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
     {
       _toggle_count = -1;
     }
-
+      
     //Timer0 and timer2 are 8 bit timers, meaning they can store a maximum counter value of 255.
-    //Timer2 does not have the option of 1024 prescaler, only 1, 8, 32, 64
+    //Timer2 does not have the option of 1024 prescaler, only 1, 8, 32, 64  
     //Timer1 is a 16 bit timer, meaning it can store a maximum counter value of 65535.
     int prescalerIndexStart;
-
+    
     //Use smallest prescaler first, then increase until fits (<255)
     if (_timer != 2)
-    {
+    {     
       if (frequencyLimit > 64)
-        prescalerIndexStart = NO_PRESCALER;
+        prescalerIndexStart = NO_PRESCALER;        
       else if (frequencyLimit > 8)
         prescalerIndexStart = PRESCALER_8;
       else
         prescalerIndexStart = PRESCALER_64;
 
-
+        
       for (int prescalerIndex = prescalerIndexStart; prescalerIndex <= PRESCALER_1024; prescalerIndex++)
       {
         OCRValue = F_CPU / (frequency * prescalerDiv[prescalerIndex]) - 1;
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("Freq * 1000 = " + String(frequency * 1000));
-        Serial.println("F_CPU = " + String(F_CPU) + ", preScalerDiv = " + String(prescalerDiv[prescalerIndex]));
-        Serial.println("OCR = " + String(OCRValue) + ", preScalerIndex = " + String(prescalerIndex));
-#endif
+  
+        TISR_LOGWARN1(F("Freq * 1000 ="), frequency * 1000);
+        TISR_LOGWARN3(F("F_CPU ="), F_CPU, F(", preScalerDiv ="), prescalerDiv[prescalerIndex]);
+        TISR_LOGWARN3(F("OCR ="), OCRValue, F(", preScalerIndex ="), prescalerIndex);
 
         // We use very large _OCRValue now, and every time timer ISR activates, we deduct min(MAX_COUNT_16BIT, _OCRValueRemaining) from _OCRValueRemaining
         // So that we can create very long timer, even if the counter is only 16-bit.
@@ -293,15 +281,14 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
           _OCRValue           = OCRValue;
           _OCRValueRemaining  = OCRValue;
           _prescalerIndex = prescalerIndex;
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-          Serial.println("OK in loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDiv[_prescalerIndex]));
-#endif
-
+  
+          TISR_LOGWARN1(F("OK in loop => _OCR ="), _OCRValue);
+          TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDiv[_prescalerIndex]);
+             
           isSuccess = true;
-
+         
           break;
-        }
+        }       
       }
 
       if (!isSuccess)
@@ -310,33 +297,30 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
         _OCRValue           = OCRValue;
         _OCRValueRemaining  = OCRValue;
         _prescalerIndex = PRESCALER_1024;
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("OK out loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDiv[_prescalerIndex]));
-#endif
-      }
+  
+        TISR_LOGWARN1(F("OK out loop => _OCR ="), _OCRValue);
+        TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDiv[_prescalerIndex]);
+      }            
     }
     else
     {
       if (frequencyLimit > 64)
-        prescalerIndexStart = T2_NO_PRESCALER;
+        prescalerIndexStart = T2_NO_PRESCALER;        
       else if (frequencyLimit > 8)
         prescalerIndexStart = T2_PRESCALER_8;
       else if (frequencyLimit > 2)
-        prescalerIndexStart = T2_PRESCALER_32;
+        prescalerIndexStart = T2_PRESCALER_32;        
       else
         prescalerIndexStart = T2_PRESCALER_64;
-
+          
       // Page 206-207. ATmegal328
-      //8-bit Timer2 has more options up to 1024 prescaler, from 1, 8, 32, 64, 128, 256 and 1024
+      //8-bit Timer2 has more options up to 1024 prescaler, from 1, 8, 32, 64, 128, 256 and 1024  
       for (int prescalerIndex = prescalerIndexStart; prescalerIndex <= T2_PRESCALER_1024; prescalerIndex++)
       {
         OCRValue = F_CPU / (frequency * prescalerDivT2[prescalerIndex]) - 1;
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("F_CPU = " + String(F_CPU) + ", preScalerDiv = " + String(prescalerDivT2[prescalerIndex]));
-        Serial.println("OCR2 = " + String(OCRValue) + ", preScalerIndex = " + String(prescalerIndex));
-#endif
+  
+        TISR_LOGWARN3(F("F_CPU ="), F_CPU, F(", preScalerDiv ="), prescalerDivT2[prescalerIndex]);
+        TISR_LOGWARN3(F("OCR2 ="), OCRValue, F(", preScalerIndex ="), prescalerIndex);
 
         // We use very large _OCRValue now, and every time timer ISR activates, we deduct min(MAX_COUNT_8BIT, _OCRValue) from _OCRValue
         // to create very long timer, even if the counter is only 16-bit.
@@ -347,15 +331,14 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
           _OCRValueRemaining  = OCRValue;
           // same as prescalarbits
           _prescalerIndex = prescalerIndex;
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-          Serial.println("OK in loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDivT2[_prescalerIndex]));
-#endif
-
+  
+          TISR_LOGWARN1(F("OK in loop => _OCR ="), _OCRValue);
+          TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDivT2[_prescalerIndex]);
+          
           isSuccess = true;
-
+          
           break;
-        }
+        }       
       }
 
       if (!isSuccess)
@@ -365,11 +348,10 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
         _OCRValueRemaining  = OCRValue;
         // same as prescalarbits
         _prescalerIndex = T2_PRESCALER_1024;
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-        Serial.println("OK out loop => _OCR = " + String(_OCRValue) + ", _preScalerIndex = " + String(_prescalerIndex) + ", preScalerDiv = " + String(prescalerDivT2[_prescalerIndex]));
-#endif
-      }
+  
+        TISR_LOGWARN1(F("OK out loop => _OCR ="), _OCRValue);
+        TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDivT2[_prescalerIndex]);
+      } 
     }
 
     //cli();//stop interrupts
@@ -380,50 +362,47 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
     _params    = reinterpret_cast<void*>(params);
 
     _timerDone = false;
-
-    // 8 bit timers from here
-#if defined(TCCR2B)
+          
+    // 8 bit timers from here     
+    #if defined(TCCR2B)
     if (_timer == 2)
     {
       TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("TCCR2B = " + String(TCCR2B));
-#endif
+      
+      TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
     }
-#endif
+    #endif
 
     // 16 bit timers from here
-#if defined(TCCR1B)
+    #if defined(TCCR1B)
     else if (_timer == 1)
     {
       TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("TCCR1B = " + String(TCCR1B));
-#endif
-
+      
+      TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
     }
-#endif
-
-#if defined(TCCR3B)
+    #endif
+    
+    #if defined(TCCR3B)
     else if (_timer == 3)
       TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
-#endif
-
-#if defined(TCCR4B)
+    #endif
+    
+    #if defined(TCCR4B)
     else if (_timer == 4)
       TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
-#endif
-
-#if defined(TCCR5B)
+    #endif
+    
+    #if defined(TCCR5B)
     else if (_timer == 5)
       TCCR5B = (TCCR5B & andMask) | _prescalerIndex;   //prescalarbits;
-#endif
-
+    #endif
+       
     // Set the OCR for the given timer,
     // set the toggle count,
-    // then turn on the interrupts
+    // then turn on the interrupts     
     set_OCR();
-
+    
     //sei();//allow interrupts
     interrupts();
 
@@ -435,39 +414,33 @@ void TimerInterrupt::detachInterrupt(void)
 {
   //cli();//stop interrupts
   noInterrupts();
-
+  
   switch (_timer)
   {
-#if defined(TIMSK1) && defined(OCIE1A)
+    #if defined(TIMSK1) && defined(OCIE1A)
     case 1:
       bitWrite(TIMSK1, OCIE1A, 0);
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Disable T1");
-#endif
-
+ 
+      TISR_LOGWARN(F("Disable T1"));
+       
       break;
-#endif
+    #endif
 
     case 2:
-#if defined(TIMSK2) && defined(OCIE2A)
-      bitWrite(TIMSK2, OCIE2A, 0); // disable interrupt
-#endif
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Disable T2");
-#endif
-
+      #if defined(TIMSK2) && defined(OCIE2A)
+        bitWrite(TIMSK2, OCIE2A, 0); // disable interrupt
+      #endif
+      
+      TISR_LOGWARN(F("Disable T2"));
+            
       break;
 
 #if defined(TIMSK3) && defined(OCIE3A)
     case 3:
       bitWrite(TIMSK3, OCIE3A, 0);
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Disable T3");
-#endif
-
+      
+      TISR_LOGWARN(F("Disable T3"));
+            
       break;
 #endif
 
@@ -475,10 +448,8 @@ void TimerInterrupt::detachInterrupt(void)
     case 4:
       bitWrite(TIMSK4, OCIE4A, 0);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Disable T4");
-#endif
-
+      TISR_LOGWARN(F("Disable T4"));
+            
       break;
 #endif
 
@@ -486,14 +457,12 @@ void TimerInterrupt::detachInterrupt(void)
     case 5:
       bitWrite(TIMSK5, OCIE5A, 0);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Disable T5");
-#endif
-
+      TISR_LOGWARN(F("Disable T5"));
+            
       break;
 #endif
   }
-
+  
   //sei();//allow interrupts
   interrupts();
 }
@@ -513,39 +482,33 @@ void TimerInterrupt::reattachInterrupt(unsigned long duration)
   {
     _toggle_count = -1;
   }
-
+    
   switch (_timer)
   {
 #if defined(TIMSK1) && defined(OCIE1A)
     case 1:
       bitWrite(TIMSK1, OCIE1A, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Enable T1");
-#endif
-
+      TISR_LOGWARN(F("Enable T1"));
+       
       break;
 #endif
 
     case 2:
-#if defined(TIMSK2) && defined(OCIE2A)
-      bitWrite(TIMSK2, OCIE2A, 1); // enable interrupt
-#endif
+      #if defined(TIMSK2) && defined(OCIE2A)
+        bitWrite(TIMSK2, OCIE2A, 1); // enable interrupt
+      #endif
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Enable T2");
-#endif
-
+      TISR_LOGWARN(F("Enable T2"));
+            
       break;
 
 #if defined(TIMSK3) && defined(OCIE3A)
     case 3:
       bitWrite(TIMSK3, OCIE3A, 1);
-
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Enable T3");
-#endif
-
+      
+      TISR_LOGWARN(F("Enable T3"));
+            
       break;
 #endif
 
@@ -553,10 +516,8 @@ void TimerInterrupt::reattachInterrupt(unsigned long duration)
     case 4:
       bitWrite(TIMSK4, OCIE4A, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Enable T4");
-#endif
-
+      TISR_LOGWARN(F("Enable T4"));
+            
       break;
 #endif
 
@@ -564,14 +525,12 @@ void TimerInterrupt::reattachInterrupt(unsigned long duration)
     case 5:
       bitWrite(TIMSK5, OCIE5A, 1);
 
-#if (TIMER_INTERRUPT_DEBUG > 0)
-      Serial.println("Enable T5");
-#endif
-
+      TISR_LOGWARN(F("Enable T5"));
+            
       break;
 #endif
   }
-
+  
   //sei();//allow interrupts
   interrupts();
 }
@@ -580,89 +539,85 @@ void TimerInterrupt::reattachInterrupt(unsigned long duration)
 void TimerInterrupt::pauseTimer(void)
 {
   uint8_t andMask = 0b11111000;
-
-  //Just clear the CSx2-CSx0. Still keep the count in TCNT and Timer Interrupt mask TIMKSx.
-
-  // 8 bit timers from here
-#if defined(TCCR2B)
+  
+  //Just clear the CSx2-CSx0. Still keep the count in TCNT and Timer Interrupt mask TIMKSx. 
+  
+  // 8 bit timers from here     
+  #if defined(TCCR2B)
   if (_timer == 2)
   {
     TCCR2B = (TCCR2B & andMask);
-#if (TIMER_INTERRUPT_DEBUG > 0)
-    Serial.println("TCCR2B = " + String(TCCR2B));
-#endif
-  }
-#endif
 
+    TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
+  }
+  #endif
+  
   // 16 bit timers from here
-#if defined(TCCR1B)
+  #if defined(TCCR1B)
   else if (_timer == 1)
   {
     TCCR1B = (TCCR1B & andMask);
-#if (TIMER_INTERRUPT_DEBUG > 0)
-    Serial.println("TCCR1B = " + String(TCCR1B));
-#endif
+    
+    TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
   }
-#endif
-
-#if defined(TCCR3B)
+  #endif
+  
+  #if defined(TCCR3B)
   else if (_timer == 3)
     TCCR3B = (TCCR3B & andMask);
-#endif
-
-#if defined(TCCR4B)
+  #endif
+  
+  #if defined(TCCR4B)
   else if (_timer == 4)
     TCCR4B = (TCCR4B & andMask);
-#endif
-
-#if defined(TCCR5B)
+  #endif
+  
+  #if defined(TCCR5B)
   else if (_timer == 5)
     TCCR5B = (TCCR5B & andMask);
-#endif
+  #endif   
 }
 
 // Just reconnect clock source, continue from the current count
 void TimerInterrupt::resumeTimer(void)
 {
   uint8_t andMask = 0b11111000;
-
-  //Just restore the CSx2-CSx0 stored in _prescalerIndex. Still keep the count in TCNT and Timer Interrupt mask TIMKSx.
-  // 8 bit timers from here
-#if defined(TCCR2B)
+  
+  //Just restore the CSx2-CSx0 stored in _prescalerIndex. Still keep the count in TCNT and Timer Interrupt mask TIMKSx. 
+  // 8 bit timers from here     
+  #if defined(TCCR2B)
   if (_timer == 2)
   {
     TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
-#if (TIMER_INTERRUPT_DEBUG > 0)
-    Serial.println("TCCR2B = " + String(TCCR2B));
-#endif
+
+    TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
   }
-#endif
+  #endif
 
   // 16 bit timers from here
-#if defined(TCCR1B)
+  #if defined(TCCR1B)
   else if (_timer == 1)
   {
     TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-#if (TIMER_INTERRUPT_DEBUG > 0)
-    Serial.println("TCCR1B = " + String(TCCR1B));
-#endif
+    
+    TISR_LOGWARN1(F("TCCR1B ="), TCCR1B); 
   }
-#endif
-
-#if defined(TCCR3B)
+  #endif
+  
+  #if defined(TCCR3B)
   else if (_timer == 3)
     TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
-#endif
-
-#if defined(TCCR4B)
+  #endif
+  
+  #if defined(TCCR4B)
   else if (_timer == 4)
     TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
-#endif
-
-#if defined(TCCR5B)
+  #endif
+  
+  #if defined(TCCR5B)
   else if (_timer == 5)
     TCCR5B = (TCCR5B & andMask) | _prescalerIndex;   //prescalarbits;
-#endif
+  #endif  
 }
 
 #endif // TimerInterrupt_Impl_h

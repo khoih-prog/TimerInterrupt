@@ -16,6 +16,7 @@
   * [Currently supported Boards](#currently-supported-boards)
   * [Important Notes about ISR](#important-notes-about-isr)
 * [Changelog](#changelog)
+  * [Releases v1.2.0](#releases-v120)
   * [Releases v1.1.2](#releases-v112)
   * [Releases v1.1.1](#releases-v111)
   * [Releases v1.0.3](#releases-v103)
@@ -116,7 +117,6 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 ### Currently supported Boards
 
 - Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
-- Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
 - Sanguino
 - ATmega8, 48, 88, 168, 328
 - ATmega8535, 16, 32, 164, 324, 644, 1284,
@@ -128,12 +128,17 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 ## Changelog
 
+### Releases v1.2.0
+
+1. Add better debug feature.
+2. Optimize code and examples to reduce RAM usage
+
+
 ### Releases v1.1.2
 
 1. Clean-up all compiler warnings possible.
 2. Optimize examples to reduce memory usage by using Flash String whenever possible.
 3. Add Table of Contents
-
 
 ### Releases v1.1.1
 
@@ -157,7 +162,6 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
 2. [`Arduino AVR core 1.8.3+`](https://github.com/arduino/ArduinoCore-avr) for Arduino AVR boards. Use Arduino Board Manager to install.
-3. [`Teensy core 1.53+`](https://www.pjrc.com/teensy/td_download.html) for Teensy (3.1, 3.0, LC, 2.0) boards.
 
 ---
 ---
@@ -379,8 +383,10 @@ void loop()
 #endif
 
 // These define's must be placed at the beginning before #include "TimerInterrupt.h"
-// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
-#define TIMER_INTERRUPT_DEBUG      0
+// _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
+// Don't define _TIMERINTERRUPT_LOGLEVEL_ > 0. Only for special ISR debugging only. Can hang the system.
+#define TIMER_INTERRUPT_DEBUG         0
+#define _TIMERINTERRUPT_LOGLEVEL_     0
 
 #define USE_TIMER_1     false
 #define USE_TIMER_2     true
@@ -645,7 +651,7 @@ void setup()
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.println(F("\nStarting ISR_16_Timers_Array_Complex"));
+  Serial.println(F("\nStarting ISR_16_Timers_Array_Complex on AVR"));
   Serial.println(TIMER_INTERRUPT_VERSION);
   Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
@@ -905,6 +911,11 @@ Sometimes, the library will only work if you update the board core to the latest
 
 ## Releases
 
+### Releases v1.2.0
+
+1. Add better debug feature.
+2. Optimize code and examples to reduce RAM usage
+
 ### Releases v1.1.2
 
 1. Clean-up all compiler warnings possible.
@@ -940,7 +951,6 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 ### Supported Arduino Boards
 
 - Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
-- Teensy 1.0 / 1.0++ / 2.0 / 2++ / 3.0 / 3.1 / Teensy-LC;
 - Sanguino
 - ATmega8, 48, 88, 168, 328
 - ATmega8535, 16, 32, 164, 324, 644, 1284,

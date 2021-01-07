@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.1.2
+  Version: 1.2.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -28,6 +28,7 @@
   1.0.3   K.Hoang      01/12/2020 Add complex examples ISR_16_Timers_Array_Complex and ISR_16_Timers_Array_Complex
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
+  1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
 *****************************************************************************************************************************/
 
 #pragma once
@@ -36,8 +37,10 @@
 #define ISR_TIMER_H
 
 #ifndef TIMER_INTERRUPT_VERSION
-  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.1.2"
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.2.0"
 #endif
+
+#include "TimerInterrupt_Generic_Debug.h"
 
 #include <stddef.h>
 #include <inttypes.h>
@@ -53,8 +56,8 @@
 typedef void (*timer_callback)(void);
 typedef void (*timer_callback_p)(void *);
 
-class ISR_Timer {
-
+class ISR_Timer 
+{
   public:
     // maximum number of timers
     const static int MAX_TIMERS = 16;
@@ -133,11 +136,13 @@ class ISR_Timer {
     unsigned  getNumTimers();
 
     // returns the number of available timers
-    unsigned  getNumAvailableTimers() {
+    unsigned  getNumAvailableTimers() 
+    {
       return MAX_TIMERS - numTimers;
     };
 
   private:
+  
     // deferred call constants
     const static int DEFCALL_DONTRUN = 0;       // don't call the callback function
     const static int DEFCALL_RUNONLY = 1;       // call the callback function but don't delete the timer
@@ -151,7 +156,8 @@ class ISR_Timer {
     // find the first available slot
     int  findFirstFreeSlot();
 
-    typedef struct {
+    typedef struct 
+    {
       unsigned long prev_millis;        // value returned by the millis() function in the previous run() call
       void* callback;                   // pointer to the callback function
       void* param;                      // function parameter
