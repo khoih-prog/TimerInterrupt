@@ -33,7 +33,15 @@
   * [3. Timer2](#3-timer2)
   * [4. Timer3, Timer4, Timer5](#4-timer3-timer4-timer5)
   * [5. Important Notes](#5-important-notes)
-* [How to use](#how-to-use)
+* [Usage](#usage)
+  * [1. Using only Hardware Timer directly](#1-using-only-hardware-timer-directly)
+    * [1.1 Init Hardware Timer](#11-init-hardware-timer)
+    * [1.2 Set Hardware Timer Interval and attach Timer Interrupt Handler function](#12-set-hardware-timer-interval-and-attach-timer-interrupt-handler-function)
+    * [1.3 Set Hardware Timer Frequency and attach Timer Interrupt Handler function](#13-set-hardware-timer-frequency-and-attach-timer-interrupt-handler-function)
+  * [2. Using 16 ISR_based Timers from 1 Hardware Timer](#2-using-16-isr_based-timers-from-1-hardware-timer)
+    * [2.1 Important Note](#21-important-note)
+    * [2.2 Init Hardware Timer and ISR-based Timer](#22-init-hardware-timer-and-isr-based-timer)
+    * [2.3 Set Hardware Timer Interval and attach Timer Interrupt Handler functions](#23-set-hardware-timer-interval-and-attach-timer-interrupt-handler-functions)
 * [Examples](#examples)
   * [  1. Argument_Complex](examples/Argument_Complex)
   * [  2. Argument_None](examples/Argument_None)
@@ -251,98 +259,186 @@ Timer3, Timer4 and Timer5 are only available for Arduino Mega boards.
 ---
 ---
 
-## How to use
+## Usage
+
+Before using any Timer, you have to make sure the Timer has not been used by any other purpose.
+
+### 1. Using only Hardware Timer directly
+
+#### 1.1 Init Hardware Timer
 
 ```
-// These define's must be placed at the beginning before #include "TimerInterrupt.h"
-// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
-#define TIMER_INTERRUPT_DEBUG      0
-
+// Select the timers you're using, here ITimer1
 #define USE_TIMER_1     true
+#define USE_TIMER_2     false
+#define USE_TIMER_3     false
+#define USE_TIMER_4     false
+#define USE_TIMER_5     false
+
+// Init timer ITimer1
+ITimer1.init();
+```
+
+#### 1.2 Set Hardware Timer Interval and attach Timer Interrupt Handler function
+
+Use one of these functions with **interval in unsigned long milliseconds**
+
+```
+// interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+template<typename TArg> bool setInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0);
+
+// interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+bool setInterval(unsigned long interval, timer_callback callback, unsigned long duration = 0);
+
+// Interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+template<typename TArg> bool attachInterruptInterval(unsigned long interval, void (*callback)(TArg), TArg params, unsigned long duration = 0);
+
+// Interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+bool attachInterruptInterval(unsigned long interval, timer_callback callback, unsigned long duration = 0)
+```
+
+as follows
+
+```
+void TimerHandler0()
+{
+  // Doing something here inside ISR
+}
+
+#define TIMER0_INTERVAL_MS        50L
+
+void setup()
+{
+  ....
+  
+  // Interval in unsigned long millisecs
+  if (ITimer0.attachInterruptInterval(TIMER0_INTERVAL_MS, TimerHandler0))
+    Serial.println("Starting  ITimer0 OK, millis() = " + String(millis()));
+  else
+    Serial.println("Can't set ITimer0. Select another freq. or timer");
+}  
+```
+
+#### 1.3 Set Hardware Timer Frequency and attach Timer Interrupt Handler function
+
+Use one of these functions with **frequency in float Hz**
+
+```
+// frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+bool setFrequency(float frequency, timer_callback_p callback, /* void* */ uint32_t params, unsigned long duration = 0);
+
+// frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+bool setFrequency(float frequency, timer_callback callback, unsigned long duration = 0);
+
+// frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+template<typename TArg> bool attachInterrupt(float frequency, void (*callback)(TArg), TArg params, unsigned long duration = 0);
+
+// frequency (in hertz) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
+bool attachInterrupt(float frequency, timer_callback callback, unsigned long duration = 0);
+```
+
+as follows
+
+```
+void TimerHandler0()
+{
+  // Doing something here inside ISR
+}
+
+#define TIMER0_FREQ_HZ        5555.555
+
+void setup()
+{
+  ....
+  
+  // Frequency in float Hz
+  if (ITimer0.attachInterrupt(TIMER0_FREQ_HZ, TimerHandler0))
+    Serial.println("Starting  ITimer0 OK, millis() = " + String(millis()));
+  else
+    Serial.println("Can't set ITimer0. Select another freq. or timer");
+}  
+```
+
+
+### 2. Using 16 ISR_based Timers from 1 Hardware Timer
+
+### 2.1 Important Note
+
+The 16 ISR_based Timers, designed for long timer intervals, only support using **unsigned long millisec intervals**. If you have to use much higher frequency or sub-millisecond interval, you have to use the Hardware Timers directly as in [1.3 Set Hardware Timer Frequency and attach Timer Interrupt Handler function](#13-set-hardware-timer-frequency-and-attach-timer-interrupt-handler-function)
+
+### 2.2 Init Hardware Timer and ISR-based Timer
+
+```
+// Select the timers you're using, here ITimer2
+#define USE_TIMER_1     false
 #define USE_TIMER_2     true
 #define USE_TIMER_3     false
 #define USE_TIMER_4     false
 #define USE_TIMER_5     false
 
-#include "TimerInterrupt.h"
+// Init ISR_Timer
+// Each ISR_Timer can service 16 different ISR-based timers
+ISR_Timer ISR_Timer2;
+```
 
-void TimerHandler1(void)
+#### 2.3 Set Hardware Timer Interval and attach Timer Interrupt Handler functions
+
+```
+void TimerHandler()
 {
-  static bool toggle1 = false;
-  static bool started = false;
-
-  if (!started)
-  {
-    started = true;
-    pinMode(LED_BUILTIN, OUTPUT);
-  }
-
-  //timer interrupt toggles pin LED_BUILTIN
-  digitalWrite(LED_BUILTIN, toggle1);
-  toggle1 = !toggle1;
+  ISR_Timer2.run();
 }
 
-void TimerHandler2(void)
+#define HW_TIMER_INTERVAL_MS          50L
+
+#define TIMER_INTERVAL_2S             2000L
+#define TIMER_INTERVAL_5S             5000L
+#define TIMER_INTERVAL_11S            11000L
+#define TIMER_INTERVAL_101S           101000L
+
+// In AVR, avoid doing something fancy in ISR, for example complex Serial.print with String() argument
+// The pure simple Serial.prints here are just for demonstration and testing. Must be eliminate in working environment
+// Or you can get this run-time error / crash
+void doingSomething2s()
 {
-  static bool toggle2 = false;
-  static bool started = false;
-
-  if (!started)
-  {
-    started = true;
-    pinMode(A0, OUTPUT);
-  }
-
-  //timer interrupt toggles outputPin
-  digitalWrite(A0, toggle2);
-  toggle2 = !toggle2;
+  // Doing something here inside ISR every 2 seconds
+}
+  
+void doingSomething5s()
+{
+  // Doing something here inside ISR every 5 seconds
 }
 
-#define TIMER1_INTERVAL_MS    1000
+void doingSomething11s()
+{
+  // Doing something here inside ISR  every 11 seconds
+}
 
-#define TIMER2_INTERVAL_MS    2000
+void doingSomething101s()
+{
+  // Doing something here inside ISR every 101 seconds
+}
 
 void setup()
 {
-  Serial.begin(115200);
-  while (!Serial);
-
-  Serial.println(F("\nStarting Argument_None"));
-  Serial.println(TIMER_INTERRUPT_VERSION);
-  Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
-
-  // Select Timer 1-2 for UNO, 0-5 for MEGA
-  // Timer 2 is 8-bit timer, only for higher frequency
-  ITimer1.init();
-
-  // Using ATmega328 used in UNO => 16MHz CPU clock ,
-  // For 16-bit timer 1, 3, 4 and 5, set frequency from 0.2385 to some KHz
-  // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
-
-  if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
+  ....
+  
+  // Interval in microsecs
+  if (ITimer.attachInterruptInterval(HW_TIMER_INTERVAL_MS * 1000, TimerHandler))
   {
-    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
+    lastMillis = millis();
+    Serial.println("Starting  ITimer OK, millis() = " + String(lastMillis));
   }
   else
-    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
+    Serial.println("Can't set ITimer correctly. Select another freq. or interval");
 
-  // Select Timer 1-2 for UNO, 0-5 for MEGA
-  // Timer 2 is 8-bit timer, only for higher frequency
-  ITimer2.init();
-
-  if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
-  {
-    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
-  }
-  else
-    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
-}
-
-void loop()
-{
-
-}
-
+  // Just to demonstrate, don't use too many ISR Timers if not absolutely necessary
+  // You can use up to 16 timer for each ISR_Timer
+  ISR_Timer2.setInterval(TIMER_INTERVAL_2S, doingSomething2s);
+  ISR_Timer2.setInterval(TIMER_INTERVAL_5S, doingSomething5s);
+  ISR_Timer2.setInterval(TIMER_INTERVAL_11S, doingSomething11s);
+  ISR_Timer2.setInterval(TIMER_INTERVAL_101S, doingSomething101s);
+}  
 ```
 
 ---
