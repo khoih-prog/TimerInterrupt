@@ -265,7 +265,7 @@ Before using any Timer, you have to make sure the Timer has not been used by any
 
 ### 1. Using only Hardware Timer directly
 
-#### 1.1 Init Hardware Timer
+### 1.1 Init Hardware Timer
 
 ```
 // Select the timers you're using, here ITimer1
@@ -279,7 +279,7 @@ Before using any Timer, you have to make sure the Timer has not been used by any
 ITimer1.init();
 ```
 
-#### 1.2 Set Hardware Timer Interval and attach Timer Interrupt Handler function
+### 1.2 Set Hardware Timer Interval and attach Timer Interrupt Handler function
 
 Use one of these functions with **interval in unsigned long milliseconds**
 
@@ -319,7 +319,7 @@ void setup()
 }  
 ```
 
-#### 1.3 Set Hardware Timer Frequency and attach Timer Interrupt Handler function
+### 1.3 Set Hardware Timer Frequency and attach Timer Interrupt Handler function
 
 Use one of these functions with **frequency in float Hz**
 
@@ -381,7 +381,7 @@ The 16 ISR_based Timers, designed for long timer intervals, only support using *
 ISR_Timer ISR_Timer2;
 ```
 
-#### 2.3 Set Hardware Timer Interval and attach Timer Interrupt Handler functions
+### 2.3 Set Hardware Timer Interval and attach Timer Interrupt Handler functions
 
 ```
 void TimerHandler()
