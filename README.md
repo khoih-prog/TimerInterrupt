@@ -259,11 +259,12 @@ Timer 3,4,5 are only available on Arduino Mega boards. These timers are all 16-b
 
 Before using any Timer, you have to make sure the **Timer has not been used by any other purpose.**
 
-Only Timer1 is supported for Nano, UNO, etc. boards possessing 3 timers.
 
-Only Timer1 and Timer2 are supported for ATMEGA_16U4, ATMEGA_32U4 boards, such as Leonardo, YUN, ESPLORA, etc.
+#### Only Timer1 is supported for ATMEGA_16U4, ATMEGA_32U4 boards, such as Leonardo, YUN, ESPLORA, etc.
 
-Timer3, Timer4 and Timer5 are only available for Arduino Mega boards.
+#### Only Timer1 and Timer2 are supported for Nano, UNO, etc. boards possessing 3 timers.
+
+#### Timer3, Timer4 and Timer5 are only available for Arduino Mega boards.
 
 ---
 ---
