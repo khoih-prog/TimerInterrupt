@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -29,6 +29,7 @@
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
   1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
+  1.3.0   K.Hoang      25/02/2021 Add support to AVR ATMEGA_32U4 such as Leonardo, YUN, ESPLORA, etc.
 ****************************************************************************************************************************/
 
 #pragma once
@@ -36,18 +37,33 @@
 #ifndef TimerInterrupt_h
 #define TimerInterrupt_h
 
+#if ( defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+      defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+      defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+      defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) )
+
+#elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
+        defined(ARDUINO_AVR_ESPLORA)  || defined(ARDUINO_AVR_LILYPAD_USB)  || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || \
+        defined(ARDUINO_AVR_GEMMA)    || defined(ARDUINO_AVR_CIRCUITPLAY)  || defined(ARDUINO_AVR_YUNMINI) || defined(ARDUINO_AVR_INDUSTRIAL101) || \
+        defined(ARDUINO_AVR_LININO_ONE) )
+  #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
+    #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
+  #endif
+  #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
+  #warning Using ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
+#else
+  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+#endif
+
 #ifndef TIMER_INTERRUPT_DEBUG
   #define TIMER_INTERRUPT_DEBUG      0
 #endif
 
 #include "TimerInterrupt_Generic_Debug.h"
 
-#if defined(ESP8266) || defined(ESP32)
-#error This code is designed to run on Arduino AVR (Nano, UNO, Mega, etc.) platform, not ESP8266 nor ESP32! Please check your Tools->Board setting.
-#endif
-
 #ifndef TIMER_INTERRUPT_VERSION
-  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.2.0"
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.3.0"
 #endif
 
 #include <avr/interrupt.h>
@@ -59,15 +75,15 @@
 #define MAX_COUNT_16BIT           65535
 
 #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
-#define TCCR2A TCCR2
-#define TCCR2B TCCR2
-#define COM2A1 COM21
-#define COM2A0 COM20
-#define OCR2A OCR2
-#define TIMSK2 TIMSK
-#define OCIE2A OCIE2
-#define TIMER2_COMPA_vect TIMER2_COMP_vect
-#define TIMSK1 TIMSK
+  #define TCCR2A TCCR2
+  #define TCCR2B TCCR2
+  #define COM2A1 COM21
+  #define COM2A0 COM20
+  #define OCR2A OCR2
+  #define TIMSK2 TIMSK
+  #define OCIE2A OCIE2
+  #define TIMER2_COMPA_vect TIMER2_COMP_vect
+  #define TIMSK1 TIMSK
 #endif
 
 typedef void (*timer_callback)(void);
@@ -335,6 +351,31 @@ class TimerInterrupt
     };
 
 }; // class TimerInterrupt
+
+//////////////////////////////////////////////
+
+// To be sure not used Timers are disabled
+#if !defined(USE_TIMER_1)
+  #define USE_TIMER_1     false
+#endif
+
+#if !defined(USE_TIMER_2)
+  #define USE_TIMER_2     false
+#endif
+
+#if !defined(USE_TIMER_3)
+  #define USE_TIMER_3     false
+#endif
+
+#if !defined(USE_TIMER_4)
+  #define USE_TIMER_4     false
+#endif
+
+#if !defined(USE_TIMER_5)
+  #define USE_TIMER_5     false
+#endif
+
+//////////////////////////////////////////////
 
 #if USE_TIMER_1 
   #ifndef TIMER1_INSTANTIATED

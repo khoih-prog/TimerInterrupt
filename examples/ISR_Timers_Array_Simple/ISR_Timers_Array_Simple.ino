@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
 
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -33,14 +33,25 @@
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
   1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
+  1.3.0   K.Hoang      25/02/2021 Add support to AVR Leonardo and Leonardo ETH
 *****************************************************************************************************************************/
 
-#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
-    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
-    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
-    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
-    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+#if ( defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+      defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+      defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+      defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) )
 
+#elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
+        defined(ARDUINO_AVR_ESPLORA)  || defined(ARDUINO_AVR_LILYPAD_USB)  || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || \
+        defined(ARDUINO_AVR_CIRCUITPLAY)  || defined(ARDUINO_AVR_YUNMINI) || defined(ARDUINO_AVR_INDUSTRIAL101) || defined(ARDUINO_AVR_LININO_ONE) )       
+  #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
+    #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
+  #endif
+  #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
+  #warning Using ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
+#elif defined(ARDUINO_AVR_GEMMA) 
+  #error These AVR boards are not supported! You can use Software Serial. Please check your Tools->Board setting.
 #else
   #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
 #endif
@@ -51,18 +62,22 @@
 #define TIMER_INTERRUPT_DEBUG         0
 #define _TIMERINTERRUPT_LOGLEVEL_     0
 
-#define USE_TIMER_1     false
-#define USE_TIMER_2     true
-#define USE_TIMER_3     false
-#define USE_TIMER_4     false
-#define USE_TIMER_5     false
+#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  #define USE_TIMER_1     true
+#else
+  #define USE_TIMER_1     true
+  #define USE_TIMER_2     false
+  #define USE_TIMER_3     false
+  #define USE_TIMER_4     false
+  #define USE_TIMER_5     false
+#endif
 
 #include "TimerInterrupt.h"
 #include "ISR_Timer.h"
 
 #include <SimpleTimer.h>              // https://github.com/schinken/SimpleTimer
 
-ISR_Timer ISR_Timer2;
+ISR_Timer ISR_Timer1;
 
 #ifndef LED_BUILTIN
   #define LED_BUILTIN       13
@@ -72,7 +87,7 @@ ISR_Timer ISR_Timer2;
 
 // You have to use longer time here if having problem because Arduino AVR clock is low, 16MHz => lower accuracy.
 // Tested OK with 1ms when not much load => higher accuracy.
-#define TIMER2_INTERVAL_MS            1L
+#define TIMER1_INTERVAL_MS            1L
 
 volatile uint32_t startMillis = 0;
 
@@ -83,15 +98,15 @@ volatile uint32_t previousMillis2s = 0;
 volatile uint32_t previousMillis5s = 0;
 
 
-void TimerHandler2()
+void TimerHandler1()
 {
   static bool toggle  = false;
   static int timeRun  = 0;
 
-  ISR_Timer2.run();
+  ISR_Timer1.run();
 
   // Toggle LED every LED_TOGGLE_INTERVAL_MS = 2000ms = 2s
-  if (++timeRun == ((LED_TOGGLE_INTERVAL_MS) / TIMER2_INTERVAL_MS) )
+  if (++timeRun == ((LED_TOGGLE_INTERVAL_MS) / TIMER1_INTERVAL_MS) )
   {
     timeRun = 0;
 
@@ -157,17 +172,17 @@ void setup()
   Serial.println(TIMER_INTERRUPT_VERSION);
   Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
-  ITimer2.init();
+  ITimer1.init();
 
-  if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2))
+  if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
   {
-    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
   }
   else
-    Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
+    Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
-  ISR_Timer2.setInterval(2000L, doingSomething2s);
-  ISR_Timer2.setInterval(5000L, doingSomething5s);
+  ISR_Timer1.setInterval(2000L, doingSomething2s);
+  ISR_Timer1.setInterval(5000L, doingSomething5s);
 
   // You need this timer for non-critical tasks. Avoid abusing ISR if not absolutely necessary.
   simpleTimer.setInterval(SIMPLE_TIMER_MS, simpleTimerDoingSomething2s);

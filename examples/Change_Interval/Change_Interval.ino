@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
   
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -33,6 +33,7 @@
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
   1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
+  1.3.0   K.Hoang      25/02/2021 Add support to AVR Leonardo and Leonardo ETH
 *****************************************************************************************************************************/
 
 /*
@@ -47,12 +48,22 @@
    or the entire sequence of your code which accesses the data.
 */
 
-#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
-    defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
-    defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
-    defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
-    defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED)
+#if ( defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
+      defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
+      defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
+      defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
+      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) )
 
+#elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
+        defined(ARDUINO_AVR_ESPLORA)  || defined(ARDUINO_AVR_LILYPAD_USB)  || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || \
+        defined(ARDUINO_AVR_CIRCUITPLAY)  || defined(ARDUINO_AVR_YUNMINI) || defined(ARDUINO_AVR_INDUSTRIAL101) || defined(ARDUINO_AVR_LININO_ONE) )       
+  #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
+    #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
+  #endif
+  #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
+  #warning Using ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
+#elif defined(ARDUINO_AVR_GEMMA) 
+  #error These AVR boards are not supported! You can use Software Serial. Please check your Tools->Board setting.
 #else
   #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
 #endif
@@ -63,11 +74,15 @@
 #define TIMER_INTERRUPT_DEBUG         0
 #define _TIMERINTERRUPT_LOGLEVEL_     0
 
-#define USE_TIMER_1     true
-#define USE_TIMER_2     true
-#define USE_TIMER_3     false
-#define USE_TIMER_4     false
-#define USE_TIMER_5     false
+#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  #define USE_TIMER_1     true
+#else
+  #define USE_TIMER_1     true
+  #define USE_TIMER_2     true
+  #define USE_TIMER_3     false
+  #define USE_TIMER_4     false
+  #define USE_TIMER_5     false
+#endif
 
 #include "TimerInterrupt.h"
 
@@ -105,6 +120,8 @@ void TimerHandler1(void)
   toggle1 = !toggle1;
 }
 
+#if !( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+
 void TimerHandler2(void)
 {
   static bool toggle2 = false;
@@ -116,6 +133,8 @@ void TimerHandler2(void)
   digitalWrite(LED_BLUE, toggle2);
   toggle2 = !toggle2;
 }
+
+#endif
 
 void setup()
 {
@@ -145,6 +164,8 @@ void setup()
   else
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
+#if !( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+
   // Select Timer 1-2 for UNO, 0-5 for MEGA
   // Timer 2 is 8-bit timer, only for higher frequency
   ITimer2.init();
@@ -155,6 +176,8 @@ void setup()
   }
   else
     Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
+
+#endif    
 }
 
 #define CHECK_INTERVAL_MS     10000L
@@ -183,10 +206,14 @@ void loop()
       // bool setInterval(unsigned long interval, timer_callback callback, unsigned long duration)
       
       ITimer1.setInterval(TIMER1_INTERVAL_MS * (multFactor + 1), TimerHandler1);
+
+      Serial.print(F("Changing Interval, Timer1 = ")); Serial.println(TIMER1_INTERVAL_MS * (multFactor + 1)); 
+
+#if !( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
       ITimer2.setInterval(TIMER2_INTERVAL_MS * (multFactor + 1), TimerHandler2);
 
-      Serial.print(F("Changing Interval, Timer1 = ")); Serial.print(TIMER1_INTERVAL_MS * (multFactor + 1));
-      Serial.print(F(",  Timer2 = ")); Serial.println(TIMER2_INTERVAL_MS * (multFactor + 1));                         
+      Serial.print(F("Changing Interval, Timer2 = ")); Serial.println(TIMER2_INTERVAL_MS * (multFactor + 1));                        
+#endif
       
       lastChangeTime = currTime;
     }

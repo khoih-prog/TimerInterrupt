@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.2.0
+  Version: 1.3.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -29,6 +29,7 @@
   1.1.1   K.Hoang      06/12/2020 Add example Change_Interval. Bump up version to sync with other TimerInterrupt Libraries
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
   1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
+  1.3.0   K.Hoang      25/02/2021 Add support to AVR ATMEGA_32U4 such as Leonardo, YUN, ESPLORA, etc.
 ****************************************************************************************************************************/
 
 #pragma once
@@ -375,7 +376,11 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
 
     // 16 bit timers from here
     #if defined(TCCR1B)
+    #if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+    if (_timer == 1)
+    #else
     else if (_timer == 1)
+    #endif
     {
       TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
       
@@ -554,7 +559,11 @@ void TimerInterrupt::pauseTimer(void)
   
   // 16 bit timers from here
   #if defined(TCCR1B)
+  #if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  if (_timer == 1)
+  #else
   else if (_timer == 1)
+  #endif
   {
     TCCR1B = (TCCR1B & andMask);
     
@@ -596,7 +605,11 @@ void TimerInterrupt::resumeTimer(void)
 
   // 16 bit timers from here
   #if defined(TCCR1B)
+  #if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  if (_timer == 1)
+  #else
   else if (_timer == 1)
+  #endif
   {
     TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
     
