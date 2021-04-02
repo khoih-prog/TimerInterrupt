@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.3.0
+  Version: 1.4.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -30,6 +30,7 @@
   1.1.2   K.Hoang      05/01/2021 Fix warnings. Optimize examples to reduce memory usage
   1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
   1.3.0   K.Hoang      25/02/2021 Add support to AVR ATMEGA_32U4 such as Leonardo, YUN, ESPLORA, etc.
+  1.4.0   K.Hoang      01/04/2021 Add support to Adafruit 32U4 and 328(P) such as FEATHER32U4, FEATHER328P, etc.
 ****************************************************************************************************************************/
 
 #pragma once
@@ -41,19 +42,35 @@
       defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
       defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
       defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
-      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) )
+      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || \
+      defined(ARDUINO_AVR_DUEMILANOVE) )
 
+#elif ( defined(ARDUINO_AVR_FEATHER328P) || defined(ARDUINO_AVR_METRO) || defined(ARDUINO_AVR_PROTRINKET5) || defined(ARDUINO_AVR_PROTRINKET3) || \
+      defined(ARDUINO_AVR_PROTRINKET5FTDI) || defined(ARDUINO_AVR_PROTRINKET3FTDI) )
+  #warning Using Adafruit ATMega328(P), such as AVR_FEATHER328P or AVR_METRO. 
+        
 #elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
         defined(ARDUINO_AVR_ESPLORA)  || defined(ARDUINO_AVR_LILYPAD_USB)  || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || \
-        defined(ARDUINO_AVR_GEMMA)    || defined(ARDUINO_AVR_CIRCUITPLAY)  || defined(ARDUINO_AVR_YUNMINI) || defined(ARDUINO_AVR_INDUSTRIAL101) || \
-        defined(ARDUINO_AVR_LININO_ONE) )
+        defined(ARDUINO_AVR_CIRCUITPLAY)  || defined(ARDUINO_AVR_YUNMINI) || defined(ARDUINO_AVR_INDUSTRIAL101) || defined(ARDUINO_AVR_LININO_ONE) )
   #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
     #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
   #endif
   #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
-  #warning Using ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
+  #warning Using Arduino ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
+  
+#elif ( defined(ARDUINO_AVR_FLORA8 ) || defined(ARDUINO_AVR_FEATHER32U4) || defined(ARDUINO_AVR_CIRCUITPLAY) || defined(ARDUINO_AVR_ITSYBITSY32U4_5V) || \
+        defined(ARDUINO_AVR_ITSYBITSY32U4_3V)  || defined(ARDUINO_AVR_BLUEFRUITMICRO) || defined(ARDUINO_AVR_ADAFRUIT32U4) )
+  #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
+    #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
+  #endif
+  #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
+  #warning Using Adafruit ATMega32U4, such as Feather_32u4 or AVR_CIRCUITPLAY. Only Timer1 is available 
+
+#elif ( defined(ARDUINO_AVR_GEMMA) || defined(ARDUINO_AVR_TRINKET3) || defined(ARDUINO_AVR_TRINKET5) )
+  #error These AVR boards are not supported! Please check your Tools->Board setting.
+     
 #else
-  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
+  #error This is designed only for Arduino or Adafruit AVR board! Please check your Tools->Board setting.
 #endif
 
 #ifndef TIMER_INTERRUPT_DEBUG
@@ -63,7 +80,7 @@
 #include "TimerInterrupt_Generic_Debug.h"
 
 #ifndef TIMER_INTERRUPT_VERSION
-  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.3.0"
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.4.0"
 #endif
 
 #include <avr/interrupt.h>
@@ -361,18 +378,34 @@ class TimerInterrupt
 
 #if !defined(USE_TIMER_2)
   #define USE_TIMER_2     false
+#elif ( USE_TIMER_2 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  #undef USE_TIMER_2
+  #define USE_TIMER_2     false
+  #warning Timer2 is disabled for ATMEGA_32U4
 #endif
 
 #if !defined(USE_TIMER_3)
   #define USE_TIMER_3     false
+#elif ( USE_TIMER_3 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  #undef USE_TIMER_3
+  #define USE_TIMER_3     false
+  #warning Timer3 is disabled for ATMEGA_32U4
 #endif
 
 #if !defined(USE_TIMER_4)
   #define USE_TIMER_4     false
+#elif ( USE_TIMER_4 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  #undef USE_TIMER_4
+  #define USE_TIMER_4     false
+  #warning Timer4 is disabled for ATMEGA_32U4
 #endif
 
 #if !defined(USE_TIMER_5)
   #define USE_TIMER_5     false
+#elif ( USE_TIMER_5 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+  #undef USE_TIMER_5
+  #define USE_TIMER_5     false
+  #warning Timer5 is disabled for ATMEGA_32U4
 #endif
 
 //////////////////////////////////////////////

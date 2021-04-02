@@ -16,6 +16,7 @@
   * [Currently supported Boards](#currently-supported-boards)
   * [Important Notes about ISR](#important-notes-about-isr)
 * [Changelog](#changelog)
+  * [Releases v1.4.0](#releases-v140)
   * [Releases v1.3.0](#releases-v130)
   * [Releases v1.2.0](#releases-v120)
   * [Releases v1.1.2](#releases-v112)
@@ -82,7 +83,7 @@
 
 ### Features
 
-This library enables you to use Interrupt from Hardware Timers on an Arduino AVR board, such as Nano, UNO, Mega, etc.
+This library enables you to use Interrupt from Hardware Timers on an Arduino or Adafruit AVR board, such as Nano, UNO, Mega, AVR_FEATHER32U4, etc.
 
 As **Hardware Timers are rare, and very precious assets** of any board, this library now enables you to use up to **16 ISR-based Timers, while consuming only 1 Hardware Timer**. Timers' interval is very long (**ulong millisecs**).
 
@@ -126,17 +127,20 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 ### Currently supported Boards
 
 - Arduino Uno / Mega / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano, etc.
-- Sanguino
-- ATmega8, 48, 88, 168, 328
-- ATmega8535, 16, 32, 164, 324, 644, 1284,
-- ATmega64, 128
-- ATtiny 84 / 85
-- **ATMega 16U4, 32U4** such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc.
+- **Arduino ATMega 16U4, 32U4** such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc.
+- **Adafruit ATMega 32U4** such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc.
+- **Adafruit ATMega 328(P)** such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
 
 ---
 ---
 
 ## Changelog
+
+### Releases v1.4.0
+
+1. Add support to **Adafruit AVR ATMEGA_32U4** such as **AVR_FLORA8, AVR_FEATHER32U4, etc.**
+2. Add support to **Adafruit AVR ATMEGA_328(P)** such as **AVR_FEATHER328P, AVR_METRO, etc.**
+3. Update examples
 
 ### Releases v1.3.0
 
@@ -177,6 +181,7 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
 2. [`Arduino AVR core 1.8.3+`](https://github.com/arduino/ArduinoCore-avr) for Arduino AVR boards. Use Arduino Board Manager to install. [![Latest release](https://img.shields.io/github/release/arduino/ArduinoCore-avr.svg)](https://github.com/arduino/ArduinoCore-avr/releases/latest/)
+3. [`Adafruit AVR core 1.4.13+`](https://github.com/adafruit/Adafruit_Arduino_Boards) for Adafruit AVR boards. Use Arduino Board Manager to install. 
 
 ---
 ---
@@ -279,15 +284,11 @@ Before using any Timer, you have to make sure the Timer has not been used by any
 
 ```
 // Select the timers you're using, here ITimer1
-#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #define USE_TIMER_1     true
-#else
-  #define USE_TIMER_1     true
-  #define USE_TIMER_2     false
-  #define USE_TIMER_3     false
-  #define USE_TIMER_4     false
-  #define USE_TIMER_5     false
-#endif
+#define USE_TIMER_1     true
+#define USE_TIMER_2     false
+#define USE_TIMER_3     false
+#define USE_TIMER_4     false
+#define USE_TIMER_5     false
 
 // Init timer ITimer1
 ITimer1.init();
@@ -383,15 +384,11 @@ The 16 ISR_based Timers, designed for long timer intervals, only support using *
 ### 2.2 Init Hardware Timer and ISR-based Timer
 
 ```
-#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #define USE_TIMER_1     true
-#else
-  #define USE_TIMER_1     true
-  #define USE_TIMER_2     false
-  #define USE_TIMER_3     false
-  #define USE_TIMER_4     false
-  #define USE_TIMER_5     false
-#endif
+#define USE_TIMER_1     true
+#define USE_TIMER_2     false
+#define USE_TIMER_3     false
+#define USE_TIMER_4     false
+#define USE_TIMER_5     false
 
 // Init ISR_Timer
 // Each ISR_Timer can service 16 different ISR-based timers
@@ -485,41 +482,17 @@ void setup()
 ### Example [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex)
 
 ```cpp
-#if ( defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
-      defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
-      defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
-      defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
-      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) )
-
-#elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
-        defined(ARDUINO_AVR_ESPLORA)  || defined(ARDUINO_AVR_LILYPAD_USB)  || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || \
-        defined(ARDUINO_AVR_CIRCUITPLAY)  || defined(ARDUINO_AVR_YUNMINI) || defined(ARDUINO_AVR_INDUSTRIAL101) || defined(ARDUINO_AVR_LININO_ONE) )       
-  #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
-    #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
-  #endif
-  #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
-  #warning Using ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
-#elif defined(ARDUINO_AVR_GEMMA) 
-  #error These AVR boards are not supported! You can use Software Serial. Please check your Tools->Board setting.
-#else
-  #error This is designed only for Arduino AVR board! Please check your Tools->Board setting.
-#endif
-
 // These define's must be placed at the beginning before #include "TimerInterrupt.h"
 // _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
 // Don't define _TIMERINTERRUPT_LOGLEVEL_ > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG         0
 #define _TIMERINTERRUPT_LOGLEVEL_     0
 
-#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #define USE_TIMER_1     true
-#else
-  #define USE_TIMER_1     true
-  #define USE_TIMER_2     false
-  #define USE_TIMER_3     false
-  #define USE_TIMER_4     false
-  #define USE_TIMER_5     false
-#endif
+#define USE_TIMER_1     true
+#define USE_TIMER_2     false
+#define USE_TIMER_3     false
+#define USE_TIMER_4     false
+#define USE_TIMER_5     false
 
 #include "TimerInterrupt.h"
 #include "ISR_Timer.h"
@@ -840,7 +813,7 @@ While software timer, **programmed for 2s, is activated after more than 10.000s 
 
 ```
 Starting ISR_16_Timers_Array_Complex on AVR
-TimerInterrupt v1.3.0
+TimerInterrupt v1.4.0
 CPU Frequency = 16 MHz
 Starting  ITimer2 OK, millis() = 1
 SimpleTimer : 2, ms : 10007, Dms : 10007
@@ -990,7 +963,7 @@ The following is the sample terminal output when running example [Change_Interva
 
 ```
 Starting Change_Interval on AVR
-TimerInterrupt v1.3.0
+TimerInterrupt v1.4.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 1
 Starting  ITimer2 OK, millis() = 4
@@ -1020,8 +993,10 @@ You can also change the debugging level from 0 to 3
 
 ```cpp
 // These define's must be placed at the beginning before #include "TimerInterrupt.h"
-// Don't define TIMER_INTERRUPT_DEBUG > 0. Only for special ISR debugging only. Can hang the system.
-#define TIMER_INTERRUPT_DEBUG      0
+// _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
+// Don't define _TIMERINTERRUPT_LOGLEVEL_ > 0. Only for special ISR debugging only. Can hang the system.
+#define TIMER_INTERRUPT_DEBUG         0
+#define _TIMERINTERRUPT_LOGLEVEL_     0
 ```
 
 ---
@@ -1037,6 +1012,12 @@ Sometimes, the library will only work if you update the board core to the latest
 ---
 
 ## Releases
+
+### Releases v1.4.0
+
+1. Add support to **Adafruit AVR ATMEGA_32U4** such as **AVR_FLORA8, AVR_FEATHER32U4, etc.**
+2. Add support to **Adafruit AVR ATMEGA_328(P)** such as **AVR_FEATHER328P, AVR_METRO, etc.**
+3. Update examples
 
 ### Releases v1.3.0
 
@@ -1080,14 +1061,12 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 
 ---
 
-### Supported Arduino Boards
+### Currently supported Boards
 
-- Arduino Uno / Mega / Leonardo / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano etc.
-- Sanguino
-- ATmega8, 48, 88, 168, 328
-- ATmega8535, 16, 32, 164, 324, 644, 1284,
-- ATmega64, 128
-- ATtiny 84 / 85
+- Arduino Uno / Mega / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano, etc.
+- **Arduino ATMega 16U4, 32U4** such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc.
+- **Adafruit ATMega 32U4** such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc.
+- **Adafruit ATMega 328(P)** such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
 
 ---
 ---
@@ -1113,8 +1092,9 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 4. Fix some bugs in v1.0.0
 5. Add more examples.
 6. Similar library for ESP32, ESP8266, SAMD21/SAMD51, nRF52, Mbed-OS Nano-33-BLE, STM32
-7. Add support to **ATMega-16U4, ATMega-32U4**-based boards
-
+7. Add support to **Arduino ATMega-16U4, ATMega-32U4**-based boards
+8. Add support to **Adafruit ATMega-32U4**-based boards
+9. Add support to **Adafruit ATMega-328(P)**-based boards
 
 ---
 ---
@@ -1124,13 +1104,15 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 Many thanks for everyone for bug reporting, new feature suggesting, testing and contributing to the development of this library. Especially to these people who have directly or indirectly contributed to this [TimerInterrupt library](https://github.com/khoih-prog/TimerInterrupt)
 
 1. Thanks to [Django0](https://github.com/Django0) to provide the following PR [Fixed warnings from cppcheck (platformio) and -Wall arduino-cli. PR#10](https://github.com/khoih-prog/TimerInterrupt/pull/10).
-2. Thanks to [eslavko](https://github.com/eslavko) to report the issue [Error compiling for arduino leonardo #13](https://github.com/khoih-prog/TimerInterrupt/issues/13) leading to new release v1.3.0 to provide support to **ATMega-16U4, ATMega-32U4**-based boards, such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc..
+2. Thanks to [eslavko](https://github.com/eslavko) to report the issue [Error compiling for arduino leonardo #13](https://github.com/khoih-prog/TimerInterrupt/issues/13) leading to new release v1.3.0 to provide support to **Arduino ATMega-16U4, ATMega-32U4**-based boards, such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc..
+3. Thanks to [bzuidgeest](https://github.com/bzuidgeest) to report the issue [Adafruit feather 32u4 #17](https://github.com/khoih-prog/TimerInterrupt/issues/17) leading to new release v1.4.0 to provide support to Adafruit **ATMega-32U4**-based boards, such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc. and Adafrui ATMega-328(P)-based boards, such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
 
 
 <table>
   <tr>
     <td align="center"><a href="https://github.com/Django0"><img src="https://github.com/Django0.png" width="100px;" alt="Django0"/><br /><sub><b>Django0</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/eslavko"><img src="https://github.com/eslavko.png" width="100px;" alt="eslavko"/><br /><sub><b>eslavko</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/bzuidgeest"><img src="https://github.com/bzuidgeest.png" width="100px;" alt="bzuidgeest"/><br /><sub><b>bzuidgeest</b></sub></a><br /></td>
   </tr> 
 </table>
 
