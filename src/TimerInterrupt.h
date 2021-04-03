@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.4.0
+  Version: 1.4.1
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -31,6 +31,7 @@
   1.2.0   K.Hoang      07/01/2021 Add better debug feature. Optimize code and examples to reduce RAM usage
   1.3.0   K.Hoang      25/02/2021 Add support to AVR ATMEGA_32U4 such as Leonardo, YUN, ESPLORA, etc.
   1.4.0   K.Hoang      01/04/2021 Add support to Adafruit 32U4 and 328(P) such as FEATHER32U4, FEATHER328P, etc.
+  1.4.1   K.Hoang      02/04/2021 Add support to Sparkfun 32U4, 328(P), 128RFA1 such as AVR_PROMICRO, REDBOT, etc.
 ****************************************************************************************************************************/
 
 #pragma once
@@ -38,15 +39,21 @@
 #ifndef TimerInterrupt_h
 #define TimerInterrupt_h
 
+#if defined(BOARD_TYPE)
+  #undef BOARD_TYPE
+#endif
+
 #if ( defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
       defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
       defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
       defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
       defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || \
       defined(ARDUINO_AVR_DUEMILANOVE) )
+  #define BOARD_TYPE    "Arduino AVR"
 
 #elif ( defined(ARDUINO_AVR_FEATHER328P) || defined(ARDUINO_AVR_METRO) || defined(ARDUINO_AVR_PROTRINKET5) || defined(ARDUINO_AVR_PROTRINKET3) || \
       defined(ARDUINO_AVR_PROTRINKET5FTDI) || defined(ARDUINO_AVR_PROTRINKET3FTDI) )
+  #define BOARD_TYPE    "Adafruit AVR ATMega328(P)"
   #warning Using Adafruit ATMega328(P), such as AVR_FEATHER328P or AVR_METRO. 
         
 #elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
@@ -56,6 +63,7 @@
     #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
   #endif
   #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
+  #define BOARD_TYPE    "Arduino AVR ATMega32U4"
   #warning Using Arduino ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
   
 #elif ( defined(ARDUINO_AVR_FLORA8 ) || defined(ARDUINO_AVR_FEATHER32U4) || defined(ARDUINO_AVR_CIRCUITPLAY) || defined(ARDUINO_AVR_ITSYBITSY32U4_5V) || \
@@ -64,8 +72,26 @@
     #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
   #endif
   #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
-  #warning Using Adafruit ATMega32U4, such as Feather_32u4 or AVR_CIRCUITPLAY. Only Timer1 is available 
+  #define BOARD_TYPE    "Adafruit AVR ATMega32U4"
+  #warning Using Adafruit ATMega32U4, such as Feather_32u4, AVR_CIRCUITPLAY, etc.. Only Timer1 is available 
 
+#elif ( defined(__AVR_ATmega32U4__) || defined(ARDUINO_AVR_MAKEYMAKEY ) || defined(ARDUINO_AVR_PROMICRO) || defined(ARDUINO_AVR_FIOV3) || \
+        defined(ARDUINO_AVR_QDUINOMINI) || defined(ARDUINO_AVR_LILYPAD_ARDUINO_USB_PLUS_BOARD ) )
+  #if defined(TIMER_INTERRUPT_USING_ATMEGA_32U4)
+    #undef TIMER_INTERRUPT_USING_ATMEGA_32U4
+  #endif
+  #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
+  #define BOARD_TYPE    "Generic or Sparkfun AVR ATMega32U4"
+  #warning Using Generic ATMega32U4, such as Sparkfun AVR_MAKEYMAKEY, AVR_PROMICRO, etc. Only Timer1 is available 
+
+#elif ( defined(__AVR_ATmega328P__) || defined(ARDUINO_AVR_DIGITAL_SANDBOX ) || defined(ARDUINO_REDBOT) || defined(ARDUINO_AVR_SERIAL_7_SEGMENT) )
+  #define BOARD_TYPE    "Generic or Sparkfun AVR ATMega328P"
+  #warning Using Generic ATMega328P, such as Sparkfun AVR_DIGITAL_SANDBOX, REDBOT, etc.
+
+#elif ( defined(__AVR_ATmega128RFA1__) || defined(ARDUINO_ATMEGA128RFA1_DEV_BOARD) )
+  #define BOARD_TYPE    "Generic or Sparkfun AVR ATMega128RFA1"
+  #warning Using Generic ATMega128RFA1, such as Sparkfun ATMEGA128RFA1_DEV_BOARD, etc.
+  
 #elif ( defined(ARDUINO_AVR_GEMMA) || defined(ARDUINO_AVR_TRINKET3) || defined(ARDUINO_AVR_TRINKET5) )
   #error These AVR boards are not supported! Please check your Tools->Board setting.
      
@@ -80,7 +106,7 @@
 #include "TimerInterrupt_Generic_Debug.h"
 
 #ifndef TIMER_INTERRUPT_VERSION
-  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.4.0"
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.4.1"
 #endif
 
 #include <avr/interrupt.h>

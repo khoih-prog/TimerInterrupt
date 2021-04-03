@@ -13,9 +13,10 @@
 * [Why do we need this TimerInterrupt library](#why-do-we-need-this-timerinterrupt-library)
   * [Features](#features)
   * [Why using ISR-based Hardware Timer Interrupt is better](#why-using-isr-based-hardware-timer-interrupt-is-better)
-  * [Currently supported Boards](#currently-supported-boards)
   * [Important Notes about ISR](#important-notes-about-isr)
+  * [Currently supported Boards](#currently-supported-boards)
 * [Changelog](#changelog)
+  * [Releases v1.4.1](#releases-v141)
   * [Releases v1.4.0](#releases-v140)
   * [Releases v1.3.0](#releases-v130)
   * [Releases v1.2.0](#releases-v120)
@@ -130,11 +131,20 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 - **Arduino ATMega 16U4, 32U4** such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc.
 - **Adafruit ATMega 32U4** such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc.
 - **Adafruit ATMega 328(P)** such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
+- **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
+- **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
+- **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
 
 ---
 ---
 
 ## Changelog
+
+### Releases v1.4.1
+
+1. Add support to **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
+2. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
+3. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
 
 ### Releases v1.4.0
 
@@ -182,6 +192,7 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
 2. [`Arduino AVR core 1.8.3+`](https://github.com/arduino/ArduinoCore-avr) for Arduino AVR boards. Use Arduino Board Manager to install. [![Latest release](https://img.shields.io/github/release/arduino/ArduinoCore-avr.svg)](https://github.com/arduino/ArduinoCore-avr/releases/latest/)
 3. [`Adafruit AVR core 1.4.13+`](https://github.com/adafruit/Adafruit_Arduino_Boards) for Adafruit AVR boards. Use Arduino Board Manager to install. 
+4. [`Sparkfun AVR core 1.1.13+`](https://github.com/sparkfun/Arduino_Boards) for Sparkfun AVR boards. Use Arduino Board Manager to install. 
 
 ---
 ---
@@ -812,8 +823,8 @@ The following is the sample terminal output when running example [ISR_16_Timers_
 While software timer, **programmed for 2s, is activated after more than 10.000s in loop().
 
 ```
-Starting ISR_16_Timers_Array_Complex on AVR
-TimerInterrupt v1.4.0
+Starting ISR_16_Timers_Array_Complex on Arduino AVR
+TimerInterrupt v1.4.1
 CPU Frequency = 16 MHz
 Starting  ITimer2 OK, millis() = 1
 SimpleTimer : 2, ms : 10007, Dms : 10007
@@ -962,8 +973,8 @@ Timer : 15, programmed : 80000, actual : 80010
 The following is the sample terminal output when running example [Change_Interval](examples/Change_Interval) on **AVR Mega2560** to demonstrate how to change Timer Interval on-the-fly
 
 ```
-Starting Change_Interval on AVR
-TimerInterrupt v1.4.0
+Starting Change_Interval on Arduino AVR
+TimerInterrupt v1.4.1
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 1
 Starting  ITimer2 OK, millis() = 4
@@ -1012,6 +1023,13 @@ Sometimes, the library will only work if you update the board core to the latest
 ---
 
 ## Releases
+
+### Releases v1.4.1
+
+1. Add support to **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
+2. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
+3. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
+
 
 ### Releases v1.4.0
 
@@ -1067,6 +1085,9 @@ in loop(), using delay() function as an example. The elapsed time then is very u
 - **Arduino ATMega 16U4, 32U4** such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc.
 - **Adafruit ATMega 32U4** such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc.
 - **Adafruit ATMega 328(P)** such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
+- **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
+- **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
+- **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
 
 ---
 ---
@@ -1085,16 +1106,19 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 
 ### DONE
 
-1. Longer Interval for timers.
-2. Reduce code size if use less timers. Eliminate compiler warnings.
-3. Now supporting complex object pointer-type argument.
-3. 16 hardware-initiated software-enabled timers while using only 1 hardware timer.
-4. Fix some bugs in v1.0.0
-5. Add more examples.
-6. Similar library for ESP32, ESP8266, SAMD21/SAMD51, nRF52, Mbed-OS Nano-33-BLE, STM32
-7. Add support to **Arduino ATMega-16U4, ATMega-32U4**-based boards
-8. Add support to **Adafruit ATMega-32U4**-based boards
-9. Add support to **Adafruit ATMega-328(P)**-based boards
+ 1. Longer Interval for timers.
+ 2. Reduce code size if use less timers. Eliminate compiler warnings.
+ 3. Now supporting complex object pointer-type argument.
+ 3. 16 hardware-initiated software-enabled timers while using only 1 hardware timer.
+ 4. Fix some bugs in v1.0.0
+ 5. Add more examples.
+ 6. Similar library for ESP32, ESP8266, SAMD21/SAMD51, nRF52, Mbed-OS Nano-33-BLE, STM32
+ 7. Add support to **Arduino ATMega-16U4, ATMega-32U4**-based boards
+ 8. Add support to **Adafruit ATMega-32U4**-based boards
+ 9. Add support to **Adafruit ATMega-328(P)**-based boards
+10. Add support to **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
+11. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
+12. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
 
 ---
 ---

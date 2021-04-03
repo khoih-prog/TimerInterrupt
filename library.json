@@ -1,8 +1,8 @@
 {
   "name": "TimerInterrupt",
-  "version": "1.4.0",
-  "keywords": "timer, interrupt, hardware, isr, isr-based, hardware-timer, mission-critical, accuracy, precise, mega, nano, uno, leonardo, yun, yun-mini, esplora, gemma, atmega, feather, adafruit, 16u4, 32u4, atmega328p, atmega168, atmega2560, atmega1280, atmega16u4, atmega32u4, atmegang, atmega8, attiny85",
-  "description": "This library enables you to use Interrupt from Hardware Timers on an Arduino or Adafruit AVR board, such as Nano, UNO, Mega, Leonardo, YUN, Teensy, Feather_32u4, Feather_328P, etc. It now supports 16 ISR-based timers, while consuming only 1 hardware Timer. Timers' interval is very long (ulong millisecs). The most important feature is they're ISR-based timers. Therefore, their executions are not blocked by bad-behaving functions or tasks. This important feature is absolutely necessary for mission-critical tasks.",
+  "version": "1.4.1",
+  "keywords": "timer, interrupt, hardware, isr, isr-based, hardware-timer, mission-critical, accuracy, precise, mega, nano, uno, leonardo, yun, yun-mini, esplora, gemma, atmega, feather, adafruit, 16u4, 32u4, atmega328p, atmega128, atmega168, atmega2560, atmega1280, atmega16u4, atmega32u4, atmegang, atmega8, attiny85",
+  "description": "This library enables you to use Interrupt from Hardware Timers on an Arduino, Adafruit or Sparkfun AVR board, such as Nano, UNO, Mega, Leonardo, YUN, Teensy, Feather_32u4, Feather_328P, Pro Micro, etc. It now supports 16 ISR-based timers, while consuming only 1 hardware Timer. Timers' interval is very long (ulong millisecs). The most important feature is they're ISR-based timers. Therefore, their executions are not blocked by bad-behaving functions or tasks. This important feature is absolutely necessary for mission-critical tasks.",
   "authors":
   {
     "name":  "Khoi Hoang",
