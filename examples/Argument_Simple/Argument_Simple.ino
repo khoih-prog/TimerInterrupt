@@ -22,7 +22,7 @@
   If your data is multiple variables, such as an array and a count, usually interrupts need to be disabled
   or the entire sequence of your code which accesses the data.
 
-  Version: 1.4.1
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -36,6 +36,7 @@
   1.3.0   K.Hoang      25/02/2021 Add support to AVR ATMEGA_32U4 such as Leonardo, YUN, ESPLORA, etc.
   1.4.0   K.Hoang      01/04/2021 Add support to Adafruit 32U4 and 328(P) such as FEATHER32U4, FEATHER328P, etc.
   1.4.1   K.Hoang      02/04/2021 Add support to Sparkfun 32U4, 328(P), 128RFA1 such as AVR_PROMICRO, REDBOT, etc.
+  1.5.0   K.Hoang      08/05/2021 Add Timer 3 and 4 to 32U4. Add Timer auto-selection to examples.
  *****************************************************************************************************************************/
 
 // These define's must be placed at the beginning before #include "TimerInterrupt.h"
@@ -45,10 +46,19 @@
 #define _TIMERINTERRUPT_LOGLEVEL_     0
 
 #define USE_TIMER_1     true
-#define USE_TIMER_2     true
-#define USE_TIMER_3     false
-#define USE_TIMER_4     false
-#define USE_TIMER_5     false
+
+#if ( defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)  || \
+        defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_MINI) ||    defined(ARDUINO_AVR_ETHERNET) || \
+        defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT)   || defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO)      || \
+        defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || defined(ARDUINO_AVR_DUEMILANOVE) || defined(ARDUINO_AVR_FEATHER328P) || \
+        defined(ARDUINO_AVR_METRO) || defined(ARDUINO_AVR_PROTRINKET5) || defined(ARDUINO_AVR_PROTRINKET3) || defined(ARDUINO_AVR_PROTRINKET5FTDI) || \
+        defined(ARDUINO_AVR_PROTRINKET3FTDI) )
+  #define USE_TIMER_2     true
+  #warning Using Timer1
+#else          
+  #define USE_TIMER_3     true
+  #warning Using Timer3
+#endif
 
 #include "TimerInterrupt.h"
 
@@ -57,7 +67,7 @@
 #endif
 
 unsigned int outputPin1 = LED_BUILTIN;
-unsigned int outputPin2 = A0;
+unsigned int outputPin  = A0;
 
 #define TIMER1_INTERVAL_MS    1000
 
@@ -82,13 +92,11 @@ void TimerHandler1(unsigned int outputPin = LED_BUILTIN)
   toggle1 = !toggle1;
 }
 
-#if USE_TIMER_2
+#define TIMER_INTERVAL_MS    2000
 
-#define TIMER2_INTERVAL_MS    2000
-
-void TimerHandler2(unsigned int outputPin = LED_BUILTIN)
+void TimerHandler(unsigned int outputPin = LED_BUILTIN)
 {
-  static bool toggle2 = false;
+  static bool toggle = false;
   static bool started = false;
 
   if (!started)
@@ -98,10 +106,9 @@ void TimerHandler2(unsigned int outputPin = LED_BUILTIN)
   }
 
   //timer interrupt toggles pin outputPin, default LED_BUILTIN
-  digitalWrite(outputPin, toggle2);
-  toggle2 = !toggle2;
+  digitalWrite(outputPin, toggle);
+  toggle = !toggle;
 }
-#endif
 
 void setup()
 {
@@ -114,8 +121,9 @@ void setup()
   Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
 
   // Timer0 is used for micros(), millis(), delay(), etc and can't be used
-  // Select Timer 1-2 for UNO, 0-5 for MEGA
+  // Select Timer 1-2 for UNO, 1-5 for MEGA, 1,3,4 for 16u4/32u4
   // Timer 2 is 8-bit timer, only for higher frequency
+  // Timer 4 of 16u4 and 32u4 is 8/10-bit timer, only for higher frequency
 
   ITimer1.init();
 
@@ -136,22 +144,38 @@ void setup()
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
 #if USE_TIMER_2
-
+  
   ITimer2.init();
 
-  if (ITimer2.attachInterruptInterval(TIMER2_INTERVAL_MS, TimerHandler2, outputPin2))
+  if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
   {
-    Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
-    
+    Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
+
 #if (TIMER_INTERRUPT_DEBUG > 1)    
-    Serial.print(F("OutputPin2 = ")); Serial.print(outputPin2);
-    Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin2 );
+    Serial.print(F("OutputPin = ")); Serial.print(outputPin);
+    Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
 #endif    
   }
   else
     Serial.println(F("Can't set ITimer2. Select another freq. or timer"));
 
-#endif
+#elif USE_TIMER_3
+
+  ITimer3.init();
+
+  if (ITimer3.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler, outputPin))
+  {
+    Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
+
+#if (TIMER_INTERRUPT_DEBUG > 1)    
+    Serial.print(F("OutputPin = ")); Serial.print(outputPin);
+    Serial.print(F(" address: ")); Serial.println((uint32_t) &outputPin );
+#endif    
+  }
+  else
+    Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
+
+#endif 
 }
 
 void loop()

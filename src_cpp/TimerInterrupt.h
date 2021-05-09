@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.4.1
+  Version: 1.5.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -32,6 +32,7 @@
   1.3.0   K.Hoang      25/02/2021 Add support to AVR ATMEGA_32U4 such as Leonardo, YUN, ESPLORA, etc.
   1.4.0   K.Hoang      01/04/2021 Add support to Adafruit 32U4 and 328(P) such as FEATHER32U4, FEATHER328P, etc.
   1.4.1   K.Hoang      02/04/2021 Add support to Sparkfun 32U4, 328(P), 128RFA1 such as AVR_PROMICRO, REDBOT, etc.
+  1.5.0   K.Hoang      08/05/2021 Add Timer 3 and 4 to 32U4. Add Timer auto-selection to examples.
 ****************************************************************************************************************************/
 
 #pragma once
@@ -39,18 +40,30 @@
 #ifndef TimerInterrupt_h
 #define TimerInterrupt_h
 
-#if ( defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || \
-      defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || \
-      defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || \
-      defined(ARDUINO_AVR_MINI) || defined(ARDUINO_AVR_ETHERNET) || defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT) || \
-      defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || \
-      defined(ARDUINO_AVR_DUEMILANOVE) )
-  #define BOARD_TYPE    "Arduino AVR"
+#if defined(BOARD_TYPE)
+  #undef BOARD_TYPE
+#endif
+
+#if ( defined(__AVR_ATmega2560__) || defined(__AVR_ATmega2561__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega1281__) || \
+      defined(__AVR_ATmega640__) || defined(__AVR_ATmega641__))
+  #if defined(TIMER_INTERRUPT_USING_ATMEGA2560)
+    #undef TIMER_INTERRUPT_USING_ATMEGA2560
+  #endif
+  #define TIMER_INTERRUPT_USING_ATMEGA2560      true   
+  #define BOARD_TYPE    "Arduino AVR Mega2560/ADK"
+  #warning Using Arduino AVR Mega, Mega640(P), Mega2560/ADK. Timer1-5 available
+  
+#elif ( defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)  || \
+        defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_MINI) ||    defined(ARDUINO_AVR_ETHERNET) || \
+        defined(ARDUINO_AVR_FIO) || defined(ARDUINO_AVR_BT)   || defined(ARDUINO_AVR_LILYPAD) || defined(ARDUINO_AVR_PRO)      || \
+        defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || defined(ARDUINO_AVR_DUEMILANOVE) )      
+  #define BOARD_TYPE    "Arduino AVR UNO, Nano, etc." 
+  #warning Using Aduino AVR ATMega644(P), ATMega328(P) such as UNO, Nano. Only Timer1,2 available
 
 #elif ( defined(ARDUINO_AVR_FEATHER328P) || defined(ARDUINO_AVR_METRO) || defined(ARDUINO_AVR_PROTRINKET5) || defined(ARDUINO_AVR_PROTRINKET3) || \
       defined(ARDUINO_AVR_PROTRINKET5FTDI) || defined(ARDUINO_AVR_PROTRINKET3FTDI) )
   #define BOARD_TYPE    "Adafruit AVR ATMega328(P)"
-  #warning Using Adafruit ATMega328(P), such as AVR_FEATHER328P or AVR_METRO. 
+  #warning Using Adafruit ATMega328(P), such as AVR_FEATHER328P or AVR_METRO. Only Timer1,2 available
         
 #elif ( defined(ARDUINO_AVR_LEONARDO) || defined(ARDUINO_AVR_LEONARDO_ETH) || defined(ARDUINO_AVR_YUN) || defined(ARDUINO_AVR_MICRO) || \
         defined(ARDUINO_AVR_ESPLORA)  || defined(ARDUINO_AVR_LILYPAD_USB)  || defined(ARDUINO_AVR_ROBOT_CONTROL) || defined(ARDUINO_AVR_ROBOT_MOTOR) || \
@@ -60,7 +73,7 @@
   #endif
   #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
   #define BOARD_TYPE    "Arduino AVR ATMega32U4"
-  #warning Using Arduino ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1 is available
+  #warning Using Arduino ATMega32U4, such as Leonardo or Leonardo ETH. Only Timer1,3,4 available
   
 #elif ( defined(ARDUINO_AVR_FLORA8 ) || defined(ARDUINO_AVR_FEATHER32U4) || defined(ARDUINO_AVR_CIRCUITPLAY) || defined(ARDUINO_AVR_ITSYBITSY32U4_5V) || \
         defined(ARDUINO_AVR_ITSYBITSY32U4_3V)  || defined(ARDUINO_AVR_BLUEFRUITMICRO) || defined(ARDUINO_AVR_ADAFRUIT32U4) )
@@ -69,7 +82,7 @@
   #endif
   #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
   #define BOARD_TYPE    "Adafruit AVR ATMega32U4"
-  #warning Using Adafruit ATMega32U4, such as Feather_32u4, AVR_CIRCUITPLAY, etc.. Only Timer1 is available 
+  #warning Using Adafruit ATMega32U4, such as Feather_32u4, AVR_CIRCUITPLAY, etc.. Only Timer1,3,4 available
 
 #elif ( defined(__AVR_ATmega32U4__) || defined(ARDUINO_AVR_MAKEYMAKEY ) || defined(ARDUINO_AVR_PROMICRO) || defined(ARDUINO_AVR_FIOV3) || \
         defined(ARDUINO_AVR_QDUINOMINI) || defined(ARDUINO_AVR_LILYPAD_ARDUINO_USB_PLUS_BOARD ) )
@@ -78,7 +91,7 @@
   #endif
   #define TIMER_INTERRUPT_USING_ATMEGA_32U4      true
   #define BOARD_TYPE    "Generic or Sparkfun AVR ATMega32U4"
-  #warning Using Generic ATMega32U4, such as Sparkfun AVR_MAKEYMAKEY, AVR_PROMICRO, etc. Only Timer1 is available 
+  #warning Using Generic ATMega32U4, such as Sparkfun AVR_MAKEYMAKEY, AVR_PROMICRO, etc. Only Timer1,3,4 available
 
 #elif ( defined(__AVR_ATmega328P__) || defined(ARDUINO_AVR_DIGITAL_SANDBOX ) || defined(ARDUINO_REDBOT) || defined(ARDUINO_AVR_SERIAL_7_SEGMENT) )
   #define BOARD_TYPE    "Generic or Sparkfun AVR ATMega328P"
@@ -95,7 +108,6 @@
   #error This is designed only for Arduino or Adafruit AVR board! Please check your Tools->Board setting.
 #endif
 
-
 #ifndef TIMER_INTERRUPT_DEBUG
   #define TIMER_INTERRUPT_DEBUG      0
 #endif
@@ -103,7 +115,7 @@
 #include "TimerInterrupt_Generic_Debug.h"
 
 #ifndef TIMER_INTERRUPT_VERSION
-  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.4.1"
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.5.0"
 #endif
 
 #include <avr/interrupt.h>
@@ -112,6 +124,7 @@
 #include "pins_arduino.h"
 
 #define MAX_COUNT_8BIT            255
+#define MAX_COUNT_10BIT           1023
 #define MAX_COUNT_16BIT           65535
 
 #if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
@@ -350,7 +363,20 @@ class TimerInterrupt
       noInterrupts();
 
       if (_timer != 2)
+      {
+#if TIMER_INTERRUPT_USING_ATMEGA_32U4
+        if (_timer == 4)
+        {
+          _OCRValueRemaining -= min(MAX_COUNT_8BIT, _OCRValueRemaining);
+        }
+        else
+        {
+          _OCRValueRemaining -= min(MAX_COUNT_16BIT, _OCRValueRemaining);
+        }
+#else
         _OCRValueRemaining -= min(MAX_COUNT_16BIT, _OCRValueRemaining);
+#endif      
+      }
       else
         _OCRValueRemaining -= min(MAX_COUNT_8BIT, _OCRValueRemaining);
 
@@ -375,7 +401,20 @@ class TimerInterrupt
       // Reset value for next cycle, have to deduct the value already loaded to OCR register
 
       if (_timer != 2)
+      {
+#if TIMER_INTERRUPT_USING_ATMEGA_32U4
+        if (_timer == 4)
+        {
+          _OCRValueRemaining = _OCRValue - min(MAX_COUNT_8BIT, _OCRValueRemaining);
+        }
+        else
+        {
+          _OCRValueRemaining = _OCRValue - min(MAX_COUNT_16BIT, _OCRValueRemaining);
+        }
+#else      
         _OCRValueRemaining = _OCRValue - min(MAX_COUNT_16BIT, _OCRValueRemaining);
+#endif        
+      }  
       else
         _OCRValueRemaining = _OCRValue - min(MAX_COUNT_8BIT, _OCRValueRemaining);
 
@@ -402,33 +441,31 @@ class TimerInterrupt
 #if !defined(USE_TIMER_2)
   #define USE_TIMER_2     false
 #elif ( USE_TIMER_2 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #undef USE_TIMER_2
-  #define USE_TIMER_2     false
-  #warning Timer2 is disabled for ATMEGA_32U4
+  #error Timer2 is disabled for ATMEGA_32U4, only available for ATMEGA_328(P) and Mega
 #endif
 
 #if !defined(USE_TIMER_3)
   #define USE_TIMER_3     false
-#elif ( USE_TIMER_3 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #undef USE_TIMER_3
-  #define USE_TIMER_3     false
-  #warning Timer3 is disabled for ATMEGA_32U4
+#elif ( USE_TIMER_3 && ( TIMER_INTERRUPT_USING_ATMEGA_32U4 || TIMER_INTERRUPT_USING_ATMEGA2560 ) )
+  #warning Timer3 (16-bit) is OK to use for ATMEGA_32U4 and Mega
+#elif USE_TIMER_3
+  #error Timer3 is only available for ATMEGA_32U4 and Mega
 #endif
 
 #if !defined(USE_TIMER_4)
   #define USE_TIMER_4     false
-#elif ( USE_TIMER_4 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #undef USE_TIMER_4
-  #define USE_TIMER_4     false
-  #warning Timer4 is disabled for ATMEGA_32U4
+#elif ( USE_TIMER_4 && ( TIMER_INTERRUPT_USING_ATMEGA_32U4 || TIMER_INTERRUPT_USING_ATMEGA2560 ) )
+  #warning Timer4 is OK to use for ATMEGA_32U4 (10-bit but using as 8-bit) and Mega (16-bit)
+#elif USE_TIMER_4
+  #error Timer4 is only available for ATMEGA_32U4 and Mega
 #endif
 
 #if !defined(USE_TIMER_5)
   #define USE_TIMER_5     false
-#elif ( USE_TIMER_5 && TIMER_INTERRUPT_USING_ATMEGA_32U4 )
-  #undef USE_TIMER_5
-  #define USE_TIMER_5     false
-  #warning Timer5 is disabled for ATMEGA_32U4
+#elif ( USE_TIMER_5 && TIMER_INTERRUPT_USING_ATMEGA2560 )
+  #warning Timer5 is OK to use for Mega
+#elif USE_TIMER_5
+  #error Timer5 is only available for Mega
 #endif
 
 //////////////////////////////////////////////
@@ -525,7 +562,7 @@ class TimerInterrupt
   #endif  //#ifndef TIMER2_INSTANTIATED
 #endif    //#if USE_TIMER_2
 
-#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
+#if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
 
   // Pre-instatiate
   #if USE_TIMER_3
@@ -573,7 +610,14 @@ class TimerInterrupt
       
     #endif  //#ifndef TIMER3_INSTANTIATED
   #endif    //#if USE_TIMER_3
-  
+
+#endif      //#if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
+
+#if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
+
+  // Even 32u4 Timer4 has 10-bit counter, we use only 8-bit to simplify by not using 2-bit High Byte Register (TC4H)
+  // Check 15.2.2 Accuracy, page 141 of ATmega16U4/32U4 [DATASHEET]
+
   #if USE_TIMER_4
     #ifndef TIMER4_INSTANTIATED
       // To force pre-instatiate only once
@@ -594,7 +638,7 @@ class TimerInterrupt
               
               ITimer4.callback();
               
-              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT
+              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT (Mega2560) or MAX_COUNT_8BIT (32u4)
               ITimer4.reload_OCRValue();
               
               if (countLocal > 0)
@@ -602,9 +646,9 @@ class TimerInterrupt
             }
             else
             {
-              //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
+              //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue) or min(MAX_COUNT_8BIT, _OCRValue)
               // If _OCRValue == 0, flag _timerDone for next cycle     
-              // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
+              // If last one (_OCRValueRemaining < MAX_COUNT_16BIT / MAX_COUNT_8BIT) => load _OCR register _OCRValueRemaining
               ITimer4.adjust_OCRValue();
             }
           }
@@ -620,6 +664,10 @@ class TimerInterrupt
       
     #endif  //#ifndef TIMER4_INSTANTIATED
   #endif    //#if USE_TIMER_4
+
+#endif      //#if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
+
+#if TIMER_INTERRUPT_USING_ATMEGA2560
   
   #if USE_TIMER_5
     #ifndef TIMER5_INSTANTIATED
@@ -666,6 +714,7 @@ class TimerInterrupt
           
     #endif  //#ifndef TIMER5_INSTANTIATED
   #endif    //#if USE_TIMER_5
-#endif      //#if defined(__AVR_ATmega8__) || defined(__AVR_ATmega128__)
+  
+#endif      //#if TIMER_INTERRUPT_USING_ATMEGA2560
 
 #endif      //#ifndef TimerInterrupt_h

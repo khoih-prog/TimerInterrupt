@@ -27,9 +27,9 @@ Please ensure to specify the following:
 
 ```
 Arduino IDE version: 1.8.13
-Arduino Core Version 1.8.3
+Arduino AVR Core Version 1.8.3
 OS: Ubuntu 20.04 LTS
-Linux xy-Inspiron-3593 5.4.0-70-generic #78-Ubuntu SMP Fri Mar 19 13:29:52 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+Linux xy-Inspiron-3593 5.4.0-72-generic #80-Ubuntu SMP Mon Apr 12 17:35:00 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
 
 Context:
 I encountered a crash while trying to use the Timer Interrupt.
