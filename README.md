@@ -143,7 +143,7 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 
 ### Releases v1.5.0
 
-1. Add Timer 3 and 4 to ATmega32U4 and ATmega16U4. 
+1. Add **Timer3 and Timer4 support to ATmega32U4 and ATmega16U4.** 
 2. Add Timer auto-selection to examples.
 
 ### Releases v1.4.1
@@ -1093,7 +1093,7 @@ Sometimes, the library will only work if you update the board core to the latest
 
 ### Releases v1.5.0
 
-1. Add Timer 3 and 4 to ATmega32U4 and ATmega16U4. 
+1. Add **Timer3 and Timer4 support to ATmega32U4 and ATmega16U4.** 
 2. Add Timer auto-selection to examples.
 
 ### Releases v1.4.1
@@ -1191,6 +1191,7 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 10. Add support to **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
 11. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
 12. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
+13. Add Timer3 and Timer4 support to **ATmega32U4 and ATmega16U4**.
 
 ---
 ---
