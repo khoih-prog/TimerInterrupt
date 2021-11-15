@@ -1,5 +1,5 @@
 /****************************************************************************************************************************
-  Change_Interval.ino
+  Change_Interval_HF.ino
   For Arduino and Adadruit AVR 328(P) and 32u4 boards
   Written by Khoi Hoang
 
@@ -39,7 +39,7 @@
 // _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
 // Don't define _TIMERINTERRUPT_LOGLEVEL_ > 0. Only for special ISR debugging only. Can hang the system.
 #define TIMER_INTERRUPT_DEBUG         0
-#define _TIMERINTERRUPT_LOGLEVEL_     0
+#define _TIMERINTERRUPT_LOGLEVEL_     3
 
 #define USE_TIMER_1     true
 
@@ -49,35 +49,35 @@
         defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || defined(ARDUINO_AVR_DUEMILANOVE) || defined(ARDUINO_AVR_FEATHER328P) || \
         defined(ARDUINO_AVR_METRO) || defined(ARDUINO_AVR_PROTRINKET5) || defined(ARDUINO_AVR_PROTRINKET3) || defined(ARDUINO_AVR_PROTRINKET5FTDI) || \
         defined(ARDUINO_AVR_PROTRINKET3FTDI) )
-  #define USE_TIMER_2     true
-  #warning Using Timer1, Timer2
-#else          
-  #define USE_TIMER_3     true
-  #warning Using Timer1, Timer3
+#define USE_TIMER_2     true
+#warning Using Timer1, Timer2
+#else
+#define USE_TIMER_3     true
+#warning Using Timer1, Timer3
 #endif
 
 #include "TimerInterrupt.h"
 
 #if !defined(LED_BUILTIN)
-  #define LED_BUILTIN     13
+#define LED_BUILTIN     13
 #endif
 
 #ifndef LED_BLUE
-  #define LED_BLUE              7
+#define LED_BLUE              7
 #endif
 
+#define TIMER1_FREQUENCY            5000UL
 
-#define TIMER1_INTERVAL_MS        100UL
-#define TIMER_INTERVAL_MS         200UL
+#define TIMER_FREQUENCY             1000UL
 
 volatile uint32_t Timer1Count = 0;
 volatile uint32_t TimerCount  = 0;
 
 void printResult(uint32_t currTime)
 {
-  Serial.print(F("Time = ")); Serial.print(currTime); 
+  Serial.print(F("Time = ")); Serial.print(currTime);
   Serial.print(F(", Timer1Count = ")); Serial.print(Timer1Count);
-  
+
   Serial.print(F(", TimerCount = ")); Serial.println(TimerCount);
 }
 
@@ -99,7 +99,7 @@ void TimerHandler(void)
 
   // Flag for checking to be sure ISR is working as Serial.print is not OK here in ISR
   TimerCount++;
-  
+
   //timer interrupt toggles outputPin
   digitalWrite(LED_BLUE, toggle);
   toggle = !toggle;
@@ -109,11 +109,11 @@ void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(LED_BLUE,    OUTPUT);
-  
+
   Serial.begin(115200);
   while (!Serial);
 
-  Serial.print(F("\nStarting Change_Interval on "));
+  Serial.print(F("\nStarting Change_Interval_HF on "));
   Serial.println(BOARD_TYPE);
   Serial.println(TIMER_INTERRUPT_VERSION);
   Serial.print(F("CPU Frequency = ")); Serial.print(F_CPU / 1000000); Serial.println(F(" MHz"));
@@ -127,7 +127,7 @@ void setup()
   // For 16-bit timer 1, 3, 4 and 5, set frequency from 0.2385 to some KHz
   // For 8-bit timer 2 (prescaler up to 1024, set frequency from 61.5Hz to some KHz
 
-  if (ITimer1.attachInterruptInterval(TIMER1_INTERVAL_MS, TimerHandler1))
+  if (ITimer1.attachInterrupt(TIMER1_FREQUENCY, TimerHandler1))
   {
     Serial.print(F("Starting  ITimer1 OK, millis() = ")); Serial.println(millis());
   }
@@ -135,10 +135,10 @@ void setup()
     Serial.println(F("Can't set ITimer1. Select another freq. or timer"));
 
 #if USE_TIMER_2
-  
+
   ITimer2.init();
 
-  if (ITimer2.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
+  if (ITimer2.attachInterrupt(TIMER_FREQUENCY, TimerHandler))
   {
     Serial.print(F("Starting  ITimer2 OK, millis() = ")); Serial.println(millis());
   }
@@ -149,14 +149,14 @@ void setup()
 
   ITimer3.init();
 
-  if (ITimer3.attachInterruptInterval(TIMER_INTERVAL_MS, TimerHandler))
+  if (ITimer3.attachInterrupt(TIMER_FREQUENCY, TimerHandler))
   {
     Serial.print(F("Starting  ITimer3 OK, millis() = ")); Serial.println(millis());
   }
   else
     Serial.println(F("Can't set ITimer3. Select another freq. or timer"));
 
-#endif    
+#endif
 }
 
 #define CHECK_INTERVAL_MS     10000L
@@ -183,21 +183,22 @@ void loop()
 
       // interval (in ms) and duration (in milliseconds). Duration = 0 or not specified => run indefinitely
       // bool setInterval(unsigned long interval, timer_callback callback, unsigned long duration)
-      
-      ITimer1.setInterval(TIMER1_INTERVAL_MS * (multFactor + 1), TimerHandler1);
 
-      Serial.print(F("Changing Interval, Timer1 = ")); Serial.println(TIMER1_INTERVAL_MS * (multFactor + 1)); 
+      ITimer1.setFrequency(TIMER1_FREQUENCY / (multFactor + 1), TimerHandler1);
+
+      Serial.print(F("Changing Frequency, Timer1 = ")); Serial.println(TIMER1_FREQUENCY / (multFactor + 1));
 
 #if USE_TIMER_2
-      ITimer2.setInterval(TIMER_INTERVAL_MS * (multFactor + 1), TimerHandler);
+      ITimer2.setFrequency(TIMER_FREQUENCY / (multFactor + 1), TimerHandler);
 
-      Serial.print(F("Changing Interval, Timer2 = ")); Serial.println(TIMER_INTERVAL_MS * (multFactor + 1));  
+      Serial.print(F("Changing Frequency, Timer2 = ")); Serial.println(TIMER_FREQUENCY / (multFactor + 1));
+
 #elif USE_TIMER_3
-      ITimer3.setInterval(TIMER_INTERVAL_MS * (multFactor + 1), TimerHandler);
+      ITimer3.setFrequency(TIMER_FREQUENCY / (multFactor + 1), TimerHandler);
 
-      Serial.print(F("Changing Interval, Timer3 = ")); Serial.println(TIMER_INTERVAL_MS * (multFactor + 1));                            
+      Serial.print(F("Changing Frequency, Timer3 = ")); Serial.println(TIMER_FREQUENCY / (multFactor + 1));
 #endif
-      
+
       lastChangeTime = currTime;
     }
   }

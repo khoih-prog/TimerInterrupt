@@ -15,16 +15,7 @@
   * [Why using ISR-based Hardware Timer Interrupt is better](#why-using-isr-based-hardware-timer-interrupt-is-better)
   * [Important Notes about ISR](#important-notes-about-isr)
   * [Currently supported Boards](#currently-supported-boards)
-* [Changelog](#changelog)
-  * [Releases v1.5.0](#releases-v150)
-  * [Releases v1.4.1](#releases-v141)
-  * [Releases v1.4.0](#releases-v140)
-  * [Releases v1.3.0](#releases-v130)
-  * [Releases v1.2.0](#releases-v120)
-  * [Releases v1.1.2](#releases-v112)
-  * [Releases v1.1.1](#releases-v111)
-  * [Releases v1.0.3](#releases-v103)
-  * [Releases v1.0.2](#releases-v102)
+* [Changelog](changelog.md)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
   * [Use Arduino Library Manager](#use-arduino-library-manager)
@@ -50,26 +41,22 @@
   * [  1. Argument_Complex](examples/Argument_Complex)
   * [  2. Argument_None](examples/Argument_None)
   * [  3. Argument_Simple](examples/Argument_Simple)
-  * [  4. **Change_Interval**](examples/Change_Interval). New.
-  * [  5. **FakeAnalogWrite**](examples/FakeAnalogWrite).New.
-  * [  6. **ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex). New.
+  * [  4. Change_Interval](examples/Change_Interval)
+  * [  5. FakeAnalogWrite](examples/FakeAnalogWrite)
+  * [  6. ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex)
   * [  7. ISR_RPM_Measure](examples/ISR_RPM_Measure)
-  * [  8. ISR_Switch](examples/ISR_Switch)
-  * [  9. ISR_Timer_Complex](examples/ISR_Timer_Complex)
-  * [ 10. **ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple). New.
-  * [ 11. ISR_Timer_Switch](examples/ISR_Timer_Switch)
-  * [ 12. ISR_Timer_Switches](examples/ISR_Timer_Switches)
-  * [ 13. RPM_Measure](examples/RPM_Measure)
-  * [ 14. SwitchDebounce](examples/SwitchDebounce)
-  * [ 15. TimerDuration](examples/TimerDuration)
-  * [ 16. TimerInterruptTest](examples/TimerInterruptTest)
+  * [  8. ISR_Timers_Array_Simple](examples/ISR_Timers_Array_Simple)
+  * [  9. RPM_Measure](examples/RPM_Measure)
+  * [ 10. SwitchDebounce](examples/SwitchDebounce)
+  * [ 11. TimerDuration](examples/TimerDuration)
+  * [ 12. TimerInterruptTest](examples/TimerInterruptTest)
+  * [ 13. Change_Interval_HF](examples/Change_Interval_HF). **New**
 * [Example ISR_16_Timers_Array_Complex](#example-isr_16_timers_array_complex)
 * [Debug Terminal Output Samples](#debug-terminal-output-samples)
   * [1. ISR_16_Timers_Array_Complex on Arduino AVR Nano-V3 board](#1-isr_16_timers_array_complex-on-arduino-avr-nano-v3-board)
   * [2. Change_Interval on Arduino AVR Mega2560 board](#2-change_interval-on-arduino-avr-mega2560-board)
 * [Debug](#debug)
 * [Troubleshooting](#troubleshooting)
-* [Releases](#releases)
 * [Issues](#issues)
 * [TO DO](#to-do)
 * [DONE](#done)
@@ -139,65 +126,12 @@ The catch is your function is now part of an ISR (Interrupt Service Routine), an
 ---
 ---
 
-## Changelog
-
-### Releases v1.5.0
-
-1. Add **Timer3 and Timer4 support to ATmega32U4 and ATmega16U4.** 
-2. Add Timer auto-selection to examples.
-
-### Releases v1.4.1
-
-1. Add support to **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
-2. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
-3. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
-
-### Releases v1.4.0
-
-1. Add support to **Adafruit AVR ATMEGA_32U4** such as **AVR_FLORA8, AVR_FEATHER32U4, etc.**
-2. Add support to **Adafruit AVR ATMEGA_328(P)** such as **AVR_FEATHER328P, AVR_METRO, etc.**
-3. Update examples
-
-### Releases v1.3.0
-
-1. Add support to **AVR ATMEGA_16U4, ATMEGA_32U4** such as **Leonardo, YUN, ESPLORA, etc.**
-2. Update examples
-
-### Releases v1.2.0
-
-1. Add better debug feature.
-2. Optimize code and examples to reduce RAM usage
-
-
-### Releases v1.1.2
-
-1. Clean-up all compiler warnings possible.
-2. Optimize examples to reduce memory usage by using Flash String whenever possible.
-3. Add Table of Contents
-
-### Releases v1.1.1
-
-1. Add example [**Change_Interval**](examples/Change_Interval)
-2. Bump up version to sync with other TimerInterrupt Libraries. Modify Version String.
-3. Add new h-only code besides conventional h/cpp code
-
-### Releases v1.0.3
-
-1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
-
-### Releases v1.0.2
-
-1. Intial releases.
-
----
----
-
 
 ## Prerequisites
 
-1. [`Arduino IDE 1.8.13+` for Arduino](https://www.arduino.cc/en/Main/Software)
+1. [`Arduino IDE 1.8.16+` for Arduino](https://www.arduino.cc/en/Main/Software)
 2. [`Arduino AVR core 1.8.3+`](https://github.com/arduino/ArduinoCore-avr) for Arduino AVR boards. Use Arduino Board Manager to install. [![Latest release](https://img.shields.io/github/release/arduino/ArduinoCore-avr.svg)](https://github.com/arduino/ArduinoCore-avr/releases/latest/)
-3. [`Adafruit AVR core 1.4.13+`](https://github.com/adafruit/Adafruit_Arduino_Boards) for Adafruit AVR boards. Use Arduino Board Manager to install. 
+3. [`Adafruit AVR core 1.4.14+`](https://github.com/adafruit/Adafruit_Arduino_Boards) for Adafruit AVR boards. Use Arduino Board Manager to install. 
 4. [`Sparkfun AVR core 1.1.13+`](https://github.com/sparkfun/Arduino_Boards) for Sparkfun AVR boards. Use Arduino Board Manager to install. 
 
 ---
@@ -507,19 +441,16 @@ void setup()
  1. [Argument_Complex](examples/Argument_Complex)
  2. [Argument_None](examples/Argument_None)
  3. [Argument_Simple](examples/Argument_Simple)
- 4. [**Change_Interval**](examples/Change_Interval). New.
- 5. [**FakeAnalogWrite**](examples/FakeAnalogWrite).New.
- 6. [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex). New.
+ 4. [Change_Interval](examples/Change_Interval)
+ 5. [FakeAnalogWrite](examples/FakeAnalogWrite)
+ 6. [ISR_16_Timers_Array_Complex](examples/ISR_16_Timers_Array_Complex)
  7. [ISR_RPM_Measure](examples/ISR_RPM_Measure)
- 8. [ISR_Switch](examples/ISR_Switch)
- 9. [ISR_Timer_Complex](examples/ISR_Timer_Complex)
-10. [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple). New.
-11. [ISR_Timer_Switch](examples/ISR_Timer_Switch)
-12. [ISR_Timer_Switches](examples/ISR_Timer_Switches)
-13. [RPM_Measure](examples/RPM_Measure)
-14. [SwitchDebounce](examples/SwitchDebounce)
-15. [TimerDuration](examples/TimerDuration)
-16. [TimerInterruptTest](examples/TimerInterruptTest)
+ 8. [ISR_Timers_Array_Simple](examples/ISR_Timers_Array_Simple)
+ 9. [RPM_Measure](examples/RPM_Measure)
+10. [SwitchDebounce](examples/SwitchDebounce)
+11. [TimerDuration](examples/TimerDuration)
+12. [TimerInterruptTest](examples/TimerInterruptTest)
+13. [**Change_Interval_HF**](examples/Change_Interval_HF). New.
 
 ---
 
@@ -888,7 +819,7 @@ While software timer, **programmed for 2s, is activated after more than 10.000s 
 ```
 
 Starting ISR_16_Timers_Array_Complex on Arduino AVR UNO, Nano, etc.
-TimerInterrupt v1.5.0
+TimerInterrupt v1.6.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 7
 SimpleTimer : 2, ms : 10007, Dms : 10007
@@ -1038,7 +969,7 @@ The following is the sample terminal output when running example [Change_Interva
 
 ```
 Starting Change_Interval on Arduino AVR Mega2560/ADK
-TimerInterrupt v1.5.0
+TimerInterrupt v1.6.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 5
 Starting  ITimer3 OK, millis() = 8
@@ -1056,6 +987,91 @@ Changing Interval, Timer1 = 200
 Changing Interval, Timer3 = 400
 Time = 70008, Timer1Count = 538, TimerCount = 271
 Time = 80009, Timer1Count = 588, TimerCount = 296
+```
+
+---
+
+### 3. Change_Interval_HF on Arduino AVR Nano board
+
+The following is the sample terminal output when running example [Change_Interval_HF](examples/Change_Interval_HF) on **AVR Nano** to demonstrate how to change High Frequency Timer Interval on-the-fly
+
+```
+Starting Change_Interval_HF on Arduino AVR UNO, Nano, etc.
+TimerInterrupt v1.6.0
+CPU Frequency = 16 MHz
+[TISR] T1
+[TISR] Freq * 1000 = 5000000.00
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR = 3199 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 3199
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+[TISR] TCCR1B = 9
+Starting  ITimer1 OK, millis() = 24
+[TISR] T2
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR2 = 15999 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 15999
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+[TISR] TCCR2B = 1
+Starting  ITimer2 OK, millis() = 43
+Time = 10001, Timer1Count = 49905, TimerCount = 9886
+Time = 20002, Timer1Count = 99912, TimerCount = 19808
+[TISR] Freq * 1000 = 2500000.00
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR = 6399 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 6399
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+[TISR] TCCR1B = 9
+Changing Frequency, Timer1 = 2500
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR2 = 31999 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 31999
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+[TISR] TCCR2B = 1
+Changing Frequency, Timer2 = 500
+```
+
+---
+
+### 4. Change_Interval on Arduino AVR Mega2560 board
+
+The following is the sample terminal output when running example [Change_Interval_HF](examples/Change_Interval_HF) on **AVR Mega2560** to demonstrate how to change Timer Interval on-the-fly
+
+```
+
+Starting Change_Interval_HF on Arduino AVR Mega2560/ADK
+TimerInterrupt v1.6.0
+CPU Frequency = 16 MHz
+[TISR] T1
+[TISR] Freq * 1000 = 5000000.00
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR = 3199 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 3199
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+[TISR] TCCR1B = 9
+Starting  ITimer1 OK, millis() = 24
+[TISR] T3
+[TISR] Freq * 1000 = 1000000.00
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR = 15999 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 15999
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+Starting  ITimer3 OK, millis() = 45
+Time = 10001, Timer1Count = 49897, TimerCount = 9960
+Time = 20002, Timer1Count = 99904, TimerCount = 19961
+[TISR] Freq * 1000 = 2500000.00
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR = 6399 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 6399
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+[TISR] TCCR1B = 9
+Changing Frequency, Timer1 = 2500
+[TISR] Freq * 1000 = 500000.00
+[TISR] F_CPU = 16000000 , preScalerDiv = 1
+[TISR] OCR = 31999 , preScalerIndex = 1
+[TISR] OK in loop => _OCR = 31999
+[TISR] _preScalerIndex = 1 , preScalerDiv = 1
+Changing Frequency, Timer3 = 500
 
 ```
 
@@ -1089,80 +1105,6 @@ Sometimes, the library will only work if you update the board core to the latest
 ---
 ---
 
-## Releases
-
-### Releases v1.5.0
-
-1. Add **Timer3 and Timer4 support to ATmega32U4 and ATmega16U4.** 
-2. Add Timer auto-selection to examples.
-
-### Releases v1.4.1
-
-1. Add support to **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
-2. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
-3. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
-
-
-### Releases v1.4.0
-
-1. Add support to **Adafruit AVR ATMEGA_32U4** such as **AVR_FLORA8, AVR_FEATHER32U4, etc.**
-2. Add support to **Adafruit AVR ATMEGA_328(P)** such as **AVR_FEATHER328P, AVR_METRO, etc.**
-3. Update examples
-
-### Releases v1.3.0
-
-1. Add support to **AVR ATMEGA_16U4, ATMEGA_32U4** such as **Leonardo, YUN, ESPLORA, etc.**
-2. Update examples
-
-### Releases v1.2.0
-
-1. Add better debug feature.
-2. Optimize code and examples to reduce RAM usage
-
-### Releases v1.1.2
-
-1. Clean-up all compiler warnings possible.
-2. Optimize examples to reduce memory usage by using Flash String whenever possible.
-3. Add Table of Contents
-
-### Releases v1.1.1
-
-1. Add example [**Change_Interval**](examples/Change_Interval)
-2. Bump up version to sync with other TimerInterrupt Libraries. Modify Version String.
-3. Add new h-only code besides conventional h/cpp code
-
-### Release v1.0.3
-
-1. Add example [**ISR_16_Timers_Array_Complex**](examples/ISR_16_Timers_Array_Complex) and optimize example [**ISR_Timers_Array_Simple**](examples/ISR_Timers_Array_Simple) to demonstrate the usage of **16 ISR-based timers**
-
-### Release v1.0.2
-
-Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds)
-**The accuracy is nearly perfect** compared to software timers. The most important feature is they're ISR-based timers
-Therefore, their executions are **not blocked by bad-behaving functions / tasks**. This important feature is absolutely necessary for mission-critical tasks. 
-
-The [**ISR_Timer_Complex**](examples/ISR_Timer_Complex) example will demonstrate the nearly perfect accuracy compared to software timers by printing the actual elapsed millisecs of each type of timers.
-Being ISR-based timers, their executions are not blocked by bad-behaving functions / tasks, such as connecting to WiFi, Internet and Blynk services. You can also have many `(up to 16)` timers to use.
-
-This non-being-blocked important feature is absolutely necessary for mission-critical tasks.
-
-You'll see blynkTimer Software is blocked while system is connecting to WiFi / Internet / Blynk, as well as by blocking task 
-in loop(), using delay() function as an example. The elapsed time then is very unaccurate
-
----
-
-### Currently supported Boards
-
-- Arduino Uno / Mega / Duemilanove / Diecimila / LilyPad / Mini / Fio / Nano, etc.
-- **Arduino ATMega 16U4, 32U4** such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc.
-- **Adafruit ATMega 32U4** such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc.
-- **Adafruit ATMega 328(P)** such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
-- **Generic or Sparkfun AVR ATmega_32U4** such as **AVR_MAKEYMAKEY, AVR_PROMICRO, etc.**
-- **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
-- **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
-
----
----
 
 ### Issues
 
@@ -1192,6 +1134,7 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 11. Add support to **Generic or Sparkfun AVR ATmega_328(P)** such as **ARDUINO_REDBOT, ARDUINO_AVR_DIGITAL_SANDBOX, etc.**
 12. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
 13. Add Timer3 and Timer4 support to **ATmega32U4 and ATmega16U4**.
+14. Fix bug resulting half frequency when using high frequencies.
 
 ---
 ---
@@ -1204,6 +1147,7 @@ Many thanks for everyone for bug reporting, new feature suggesting, testing and 
 2. Thanks to [eslavko](https://github.com/eslavko) to report the issue [Error compiling for arduino leonardo #13](https://github.com/khoih-prog/TimerInterrupt/issues/13) leading to new release v1.3.0 to provide support to **Arduino ATMega-16U4, ATMega-32U4**-based boards, such as AVR Leonardo, Leonardo ETH, YUN, Esplora, LILYPAD_USB, AVR_ROBOT_CONTROL, AVR_ROBOT_MOTOR, AVR_INDUSTRIAL101, etc..
 3. Thanks to [bzuidgeest](https://github.com/bzuidgeest) to report the issue [Adafruit feather 32u4 #17](https://github.com/khoih-prog/TimerInterrupt/issues/17) leading to new release v1.4.0 to provide support to Adafruit **ATMega-32U4**-based boards, such as AVR_FLORA8, AVR_FEATHER32U4, AVR_CIRCUITPLAY, AVR_ITSYBITSY32U4_5V, AVR_ITSYBITSY32U4_3V, AVR_BLUEFRUITMICRO, AVR_ADAFRUIT32U4, etc. and **Adafruit ATMega-328(P)**-based boards, such as AVR_METRO, AVR_FEATHER328P, AVR_PROTRINKET5, AVR_PROTRINKET3, AVR_PROTRINKET5FTDI, AVR_PROTRINKET3FTDI, etc.
 4. Thanks to [joonghochoe](https://github.com/joonghochoe) to report the issue [Timer3/4 in Arduino Micro board #18](https://github.com/khoih-prog/TimerInterrupt/issues/18) leading to new release v1.5.0 to provide Timer3 and 4 support to ATmega32U4 and ATmega16U4.
+5. Thanks to [Sean Ison](https://github.com/sison54) to report the issue [Frequencies are half of what I expect #22](https://github.com/khoih-prog/TimerInterrupt/discussions/22) leading to new release v1.6.0 to fix bug in using higher frequencies than 250Hz.
 
 
 <table>
@@ -1212,6 +1156,7 @@ Many thanks for everyone for bug reporting, new feature suggesting, testing and 
     <td align="center"><a href="https://github.com/eslavko"><img src="https://github.com/eslavko.png" width="100px;" alt="eslavko"/><br /><sub><b>eslavko</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/bzuidgeest"><img src="https://github.com/bzuidgeest.png" width="100px;" alt="bzuidgeest"/><br /><sub><b>bzuidgeest</b></sub></a><br /></td>
     <td align="center"><a href="https://github.com/joonghochoe"><img src="https://github.com/joonghochoe.png" width="100px;" alt="joonghochoe"/><br /><sub><b>joonghochoe</b></sub></a><br /></td>
+    <td align="center"><a href="https://github.com/sison54"><img src="https://github.com/sison54.png" width="100px;" alt="sison54"/><br /><sub><b>Sean Ison</b></sub></a><br /></td>
   </tr> 
 </table>
 

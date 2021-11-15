@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.5.0
+  Version: 1.6.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -33,6 +33,7 @@
   1.4.0   K.Hoang      01/04/2021 Add support to Adafruit 32U4 and 328(P) such as FEATHER32U4, FEATHER328P, etc.
   1.4.1   K.Hoang      02/04/2021 Add support to Sparkfun 32U4, 328(P), 128RFA1 such as AVR_PROMICRO, REDBOT, etc.
   1.5.0   K.Hoang      08/05/2021 Add Timer 3 and 4 to 32U4. Add Timer auto-selection to examples.
+  1.6.0   K.Hoang      15/11/2021 Fix bug resulting half frequency when using high frequencies.
 ****************************************************************************************************************************/
 
 #pragma once
@@ -115,7 +116,7 @@
 #include "TimerInterrupt_Generic_Debug.h"
 
 #ifndef TIMER_INTERRUPT_VERSION
-  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.5.0"
+  #define TIMER_INTERRUPT_VERSION       "TimerInterrupt v1.6.0"
 #endif
 
 #include <avr/interrupt.h>
@@ -139,7 +140,7 @@
   #define TIMSK1 TIMSK
 #endif
 
-typedef void (*timer_callback)(void);
+typedef void (*timer_callback)();
 typedef void (*timer_callback_p)(void *);
 
 enum
@@ -195,7 +196,7 @@ class TimerInterrupt
     void*           _callback;        // pointer to the callback function
     void*           _params;          // function parameter
 
-    void set_OCR(void);
+    void set_OCR();
 
   public:
 
@@ -294,7 +295,7 @@ class TimerInterrupt
 
     void detachInterrupt();
 
-    void disableTimer(void)
+    void disableTimer()
     {
       detachInterrupt();
     }
@@ -309,13 +310,13 @@ class TimerInterrupt
     }
 
     // Just stop clock source, still keep the count
-    void pauseTimer(void);
+    void pauseTimer();
 
     // Just reconnect clock source, continue from the current count
-    void resumeTimer(void);
+    void resumeTimer();
 
     // Just stop clock source, clear the count
-    void stopTimer(void)
+    void stopTimer()
     {
       detachInterrupt();
     }
@@ -380,7 +381,8 @@ class TimerInterrupt
       else
         _OCRValueRemaining -= min(MAX_COUNT_8BIT, _OCRValueRemaining);
 
-      if (_OCRValueRemaining == 0)
+      //if (_OCRValueRemaining == 0)
+      if (_OCRValueRemaining <= 0)
       {
         // Reset value for next cycle
         _OCRValueRemaining = _OCRValue;
@@ -424,7 +426,7 @@ class TimerInterrupt
       interrupts();
     };
 
-    bool checkTimerDone(void) //__attribute__((always_inline))
+    bool checkTimerDone() //__attribute__((always_inline))
     {
       return _timerDone;
     };
@@ -492,9 +494,16 @@ class TimerInterrupt
             TISR_LOGDEBUG3(("T1 callback, _OCRValueRemaining ="), ITimer1.get_OCRValueRemaining(), (", millis ="), millis());
             
             ITimer1.callback();
-            
-            // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
-            ITimer1.reload_OCRValue();
+
+            if (ITimer1.get_OCRValueRemaining() > MAX_COUNT_16BIT)
+            {
+              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+              ITimer1.reload_OCRValue();
+            }
+            else
+            {
+              // Signal timer done
+            }
                  
             if (countLocal > 0)                  
               ITimer1.setCount(countLocal - 1);
@@ -537,9 +546,17 @@ class TimerInterrupt
             TISR_LOGDEBUG3(("T2 callback, _OCRValueRemaining ="), ITimer2.get_OCRValueRemaining(), (", millis ="), millis());
              
             ITimer2.callback();
-            // To reload _OCRValue
-            ITimer2.reload_OCRValue();
-
+            
+            if (ITimer2.get_OCRValueRemaining() > MAX_COUNT_8BIT)
+            {
+              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_8BIT if _OCRValueRemaining > MAX_COUNT_8BIT
+              ITimer2.reload_OCRValue();
+            }
+            else
+            {
+              // Signal timer done
+            }
+            
             if (countLocal > 0)
              ITimer2.setCount(countLocal - 1);
 
@@ -584,10 +601,17 @@ class TimerInterrupt
               TISR_LOGDEBUG3(("T3 callback, _OCRValueRemaining ="), ITimer3.get_OCRValueRemaining(), (", millis ="), millis());
               
               ITimer3.callback();
-              
-              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT
-              ITimer3.reload_OCRValue();
-              
+
+              if (ITimer3.get_OCRValueRemaining() > MAX_COUNT_16BIT)
+              {
+                // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+                ITimer3.reload_OCRValue();
+              }
+              else
+              {
+                // Signal timer done
+              }
+                           
               if (countLocal > 0)
                 ITimer3.setCount(countLocal - 1);     
             }
@@ -638,9 +662,16 @@ class TimerInterrupt
               
               ITimer4.callback();
               
-              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT (Mega2560) or MAX_COUNT_8BIT (32u4)
-              ITimer4.reload_OCRValue();
-              
+              if (ITimer4.get_OCRValueRemaining() > MAX_COUNT_16BIT)
+              {
+                // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+                ITimer4.reload_OCRValue();
+              }
+              else
+              {
+                // Signal timer done
+              }
+                           
               if (countLocal > 0)
                 ITimer4.setCount(countLocal - 1);       
             }
@@ -688,10 +719,17 @@ class TimerInterrupt
               TISR_LOGDEBUG3(("T5 callback, _OCRValueRemaining ="), ITimer5.get_OCRValueRemaining(), (", millis ="), millis());
               
               ITimer5.callback();
-              
-              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT
-              ITimer5.reload_OCRValue();
-              
+
+              if (ITimer5.get_OCRValueRemaining() > MAX_COUNT_16BIT)
+              {
+                // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+                ITimer5.reload_OCRValue();
+              }
+              else
+              {
+                // Signal timer done
+              } 
+                            
               if (countLocal > 0)
                 ITimer5.setCount(countLocal - 1);
             }
