@@ -55,6 +55,8 @@
 * [Debug Terminal Output Samples](#debug-terminal-output-samples)
   * [1. ISR_16_Timers_Array_Complex on Arduino AVR Nano-V3 board](#1-isr_16_timers_array_complex-on-arduino-avr-nano-v3-board)
   * [2. Change_Interval on Arduino AVR Mega2560 board](#2-change_interval-on-arduino-avr-mega2560-board)
+  * [3. Change_Interval_HF on Arduino AVR Nano board](#3-change_interval_hf-on-arduino-avr-nano-board)
+  * [4. Change_Interval on Arduino AVR Mega2560 board](#4-change_interval-on-arduino-avr-mega2560-board)
 * [Debug](#debug)
 * [Troubleshooting](#troubleshooting)
 * [Issues](#issues)
