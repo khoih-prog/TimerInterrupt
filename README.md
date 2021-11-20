@@ -821,7 +821,7 @@ While software timer, **programmed for 2s, is activated after more than 10.000s 
 ```
 
 Starting ISR_16_Timers_Array_Complex on Arduino AVR UNO, Nano, etc.
-TimerInterrupt v1.6.0
+TimerInterrupt v1.7.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 7
 SimpleTimer : 2, ms : 10007, Dms : 10007
@@ -971,7 +971,7 @@ The following is the sample terminal output when running example [Change_Interva
 
 ```
 Starting Change_Interval on Arduino AVR Mega2560/ADK
-TimerInterrupt v1.6.0
+TimerInterrupt v1.7.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 5
 Starting  ITimer3 OK, millis() = 8
@@ -999,7 +999,7 @@ The following is the sample terminal output when running example [Change_Interva
 
 ```
 Starting Change_Interval_HF on Arduino AVR UNO, Nano, etc.
-TimerInterrupt v1.6.0
+TimerInterrupt v1.7.0
 CPU Frequency = 16 MHz
 [TISR] T1
 [TISR] Freq * 1000 = 5000000.00
@@ -1035,14 +1035,14 @@ Changing Frequency, Timer2 = 500
 
 ---
 
-### 4. Change_Interval on Arduino AVR Mega2560 board
+### 4. Change_Interval_HF on Arduino AVR Mega2560 board
 
-The following is the sample terminal output when running example [Change_Interval_HF](examples/Change_Interval_HF) on **AVR Mega2560** to demonstrate how to change Timer Interval on-the-fly
+The following is the sample terminal output when running example [Change_Interval_HF](examples/Change_Interval_HF) on **AVR Mega2560** to demonstrate how to change High Frequency Timer Interval on-the-fly
 
 ```
 
 Starting Change_Interval_HF on Arduino AVR Mega2560/ADK
-TimerInterrupt v1.6.0
+TimerInterrupt v1.7.0
 CPU Frequency = 16 MHz
 [TISR] T1
 [TISR] Freq * 1000 = 5000000.00
@@ -1137,6 +1137,7 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 12. Add support to **Generic or Sparkfun AVR ATmega128RFA1** such as **ATMEGA128RFA1_DEV_BOARD, etc.**
 13. Add Timer3 and Timer4 support to **ATmega32U4 and ATmega16U4**.
 14. Fix bug resulting half frequency when using high frequencies.
+15. Fix bug resulting wrong frequency for some low frequencies.
 
 ---
 ---

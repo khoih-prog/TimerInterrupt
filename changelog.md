@@ -11,6 +11,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.7.0](#releases-v170)
   * [Releases v1.6.0](#releases-v160)
   * [Releases v1.5.0](#releases-v150)
   * [Releases v1.4.1](#releases-v141)
@@ -26,6 +27,10 @@
 ---
 
 ## Changelog
+
+### Releases v1.7.0
+
+1. Fix bug resulting wrong frequency for some low frequencies.
 
 ### Releases v1.6.0
 
