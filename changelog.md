@@ -11,6 +11,7 @@
 ## Table of Contents
 
 * [Changelog](#changelog)
+  * [Releases v1.8.0](#releases-v180)
   * [Releases v1.7.0](#releases-v170)
   * [Releases v1.6.0](#releases-v160)
   * [Releases v1.5.0](#releases-v150)
@@ -27,6 +28,11 @@
 ---
 
 ## Changelog
+
+### Releases v1.8.0
+
+1. Fix `multiple-definitions` linker error. Drop `src_cpp` and `src_h` directories
+2. Add example `Argument_Complex_Multi` to demonstrate how to avoid `multiple-definitions` linker error in multiple-file projects
 
 ### Releases v1.7.0
 

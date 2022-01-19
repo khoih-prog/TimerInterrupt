@@ -42,7 +42,10 @@
   #warning Using Timer3
 #endif
 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "TimerInterrupt.h"
+
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "ISR_Timer.h"
 
 #include <SimpleTimer.h>              // https://github.com/schinken/SimpleTimer

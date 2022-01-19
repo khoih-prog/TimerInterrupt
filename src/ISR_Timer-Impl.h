@@ -18,7 +18,7 @@
   Therefore, their executions are not blocked by bad-behaving functions / tasks.
   This important feature is absolutely necessary for mission-critical tasks.
 
-  Version: 1.7.0
+  Version: 1.8.0
 
   Version Modified By   Date      Comments
   ------- -----------  ---------- -----------
@@ -35,6 +35,7 @@
   1.5.0   K.Hoang      08/05/2021 Add Timer 3 and 4 to 32U4. Add Timer auto-selection to examples.
   1.6.0   K.Hoang      15/11/2021 Fix bug resulting half frequency when using high frequencies.
   1.7.0   K.Hoang      19/11/2021 Fix bug resulting wrong frequency for some frequencies.
+  1.8.0   K.Hoang      18/01/2022 Fix `multiple-definitions` linker error
 *****************************************************************************************************************************/
 
 #pragma once
@@ -42,7 +43,6 @@
 #ifndef ISR_TIMER_IMPL_H
 #define ISR_TIMER_IMPL_H
 
-//#include "ISR_Timer.h"
 #include <string.h>
 
 // Select time function:

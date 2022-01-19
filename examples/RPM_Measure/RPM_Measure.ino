@@ -52,6 +52,7 @@
   #warning Using Timer3
 #endif
 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "TimerInterrupt.h"
 
 unsigned int SWPin = A0;

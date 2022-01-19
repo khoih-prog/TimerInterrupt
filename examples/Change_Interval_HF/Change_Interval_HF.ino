@@ -49,21 +49,22 @@
         defined(ARDUINO_AVR_NG) || defined(ARDUINO_AVR_UNO_WIFI_DEV_ED) || defined(ARDUINO_AVR_DUEMILANOVE) || defined(ARDUINO_AVR_FEATHER328P) || \
         defined(ARDUINO_AVR_METRO) || defined(ARDUINO_AVR_PROTRINKET5) || defined(ARDUINO_AVR_PROTRINKET3) || defined(ARDUINO_AVR_PROTRINKET5FTDI) || \
         defined(ARDUINO_AVR_PROTRINKET3FTDI) )
-#define USE_TIMER_2     true
-#warning Using Timer1, Timer2
+  #define USE_TIMER_2     true
+  #warning Using Timer1, Timer2
 #else
-#define USE_TIMER_3     true
-#warning Using Timer1, Timer3
+  #define USE_TIMER_3     true
+  #warning Using Timer1, Timer3
 #endif
 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "TimerInterrupt.h"
 
 #if !defined(LED_BUILTIN)
-#define LED_BUILTIN     13
+  #define LED_BUILTIN     13
 #endif
 
 #ifndef LED_BLUE
-#define LED_BLUE              7
+  #define LED_BLUE              7
 #endif
 
 #define TIMER1_FREQUENCY            5000UL

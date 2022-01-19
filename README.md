@@ -50,7 +50,8 @@
   * [ 10. SwitchDebounce](examples/SwitchDebounce)
   * [ 11. TimerDuration](examples/TimerDuration)
   * [ 12. TimerInterruptTest](examples/TimerInterruptTest)
-  * [ 13. Change_Interval_HF](examples/Change_Interval_HF). **New**
+  * [ 13. Change_Interval_HF](examples/Change_Interval_HF).
+  * [ 14. Argument_Complex_Multi](examples/Argument_Complex_Multi). **New**
 * [Example ISR_16_Timers_Array_Complex](#example-isr_16_timers_array_complex)
 * [Debug Terminal Output Samples](#debug-terminal-output-samples)
   * [1. ISR_16_Timers_Array_Complex on Arduino AVR Nano-V3 board](#1-isr_16_timers_array_complex-on-arduino-avr-nano-v3-board)
@@ -167,24 +168,26 @@ Another way to install is to:
 
 ### HOWTO Fix `Multiple Definitions` Linker Error
 
-The current library implementation, using **xyz-Impl.h instead of standard xyz.cpp**, possibly creates certain `Multiple Definitions` Linker error in certain use cases. Although it's simple to just modify several lines of code, either in the library or in the application, the library is adding 2 more source directories
+The current library implementation, using `xyz-Impl.h` instead of standard `xyz.cpp`, possibly creates certain `Multiple Definitions` Linker error in certain use cases.
 
-1. **scr_h** for new h-only files
-2. **src_cpp** for standard h/cpp files
+You can use
 
-besides the standard **src** directory.
+```
+#include <TimerInterrupt.hpp>         //https://github.com/khoih-prog/TimerInterrupt
+#include <ISR_Timer.hpp>              //https://github.com/khoih-prog/TimerInterrupt
+```
 
-To use the **old standard cpp** way, locate this library' directory, then just 
+in many files. But be sure to use the following `#include <TimerInterrupt.h>` or `#include <ISR_Timer.h>` **in just 1 `.h`, `.cpp` or `.ino` file**, which must **not be included in any other file**, to avoid `Multiple Definitions` Linker Error
 
-1. **Delete the all the files in src directory.**
-2. **Copy all the files in src_cpp directory into src.**
-3. Close then reopen the application code in Arduino IDE, etc. to recompile from scratch.
+```
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
+#include "TimerInterrupt.h"           //https://github.com/khoih-prog/TimerInterrupt
 
-To re-use the **new h-only** way, just 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
+#include "ISR_Timer.h"                //https://github.com/khoih-prog/TimerInterrupt
+```
 
-1. **Delete the all the files in src directory.**
-2. **Copy the files in src_h directory into src.**
-3. Close then reopen the application code in Arduino IDE, etc. to recompile from scratch.
+Check new [**Argument_Complex_Multi** example](examples/Argument_Complex_Multi) for the demo how to avoid `Multiple Definitions` Linker Error. 
 
 ---
 ---
@@ -452,7 +455,8 @@ void setup()
 10. [SwitchDebounce](examples/SwitchDebounce)
 11. [TimerDuration](examples/TimerDuration)
 12. [TimerInterruptTest](examples/TimerInterruptTest)
-13. [**Change_Interval_HF**](examples/Change_Interval_HF). New.
+13. [**Change_Interval_HF**](examples/Change_Interval_HF).
+14. [**Argument_Complex_Multi**](examples/Argument_Complex_Multi). **New**
 
 ---
 
@@ -478,7 +482,10 @@ void setup()
   #warning Using Timer3
 #endif
 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "TimerInterrupt.h"
+
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "ISR_Timer.h"
 
 #include <SimpleTimer.h>              // https://github.com/schinken/SimpleTimer
@@ -821,7 +828,7 @@ While software timer, **programmed for 2s, is activated after more than 10.000s 
 ```
 
 Starting ISR_16_Timers_Array_Complex on Arduino AVR UNO, Nano, etc.
-TimerInterrupt v1.7.0
+TimerInterrupt v1.8.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 7
 SimpleTimer : 2, ms : 10007, Dms : 10007
@@ -971,7 +978,7 @@ The following is the sample terminal output when running example [Change_Interva
 
 ```
 Starting Change_Interval on Arduino AVR Mega2560/ADK
-TimerInterrupt v1.7.0
+TimerInterrupt v1.8.0
 CPU Frequency = 16 MHz
 Starting  ITimer1 OK, millis() = 5
 Starting  ITimer3 OK, millis() = 8
@@ -999,7 +1006,7 @@ The following is the sample terminal output when running example [Change_Interva
 
 ```
 Starting Change_Interval_HF on Arduino AVR UNO, Nano, etc.
-TimerInterrupt v1.7.0
+TimerInterrupt v1.8.0
 CPU Frequency = 16 MHz
 [TISR] T1
 [TISR] Freq * 1000 = 5000000.00
@@ -1042,7 +1049,7 @@ The following is the sample terminal output when running example [Change_Interva
 ```
 
 Starting Change_Interval_HF on Arduino AVR Mega2560/ADK
-TimerInterrupt v1.7.0
+TimerInterrupt v1.8.0
 CPU Frequency = 16 MHz
 [TISR] T1
 [TISR] Freq * 1000 = 5000000.00
@@ -1138,6 +1145,8 @@ Submit issues to: [TimerInterrupt issues](https://github.com/khoih-prog/TimerInt
 13. Add Timer3 and Timer4 support to **ATmega32U4 and ATmega16U4**.
 14. Fix bug resulting half frequency when using high frequencies.
 15. Fix bug resulting wrong frequency for some low frequencies.
+16. Fix `multiple-definitions` linker error. Drop `src_cpp` and `src_h` directories
+
 
 ---
 ---

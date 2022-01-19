@@ -63,6 +63,7 @@
 
 #define LOCAL_DEBUG         1
 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "TimerInterrupt.h"
 
 #ifndef LED_BUILTIN

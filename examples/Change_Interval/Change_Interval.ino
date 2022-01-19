@@ -56,6 +56,7 @@
   #warning Using Timer1, Timer3
 #endif
 
+// To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "TimerInterrupt.h"
 
 #if !defined(LED_BUILTIN)
