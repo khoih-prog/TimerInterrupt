@@ -159,6 +159,19 @@ Another way to install is to:
 3. Extract the zip file to `TimerInterrupt-master` directory 
 4. Copy whole `TimerInterrupt-master` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
 
+### arduino-cli Install
+
+1. Install [arduino-cli](https://github.com/arduino/arduino-cli)
+2. Run the following command.
+
+```
+$ arduino-cli lib install timerinterrupt
+Downloading TimerInterrupt@1.8.0...
+TimerInterrupt@1.8.0 downloaded
+Installing TimerInterrupt@1.8.0...
+Installed TimerInterrupt@1.8.0
+```
+
 ### VS Code & PlatformIO:
 
 1. Install [VS Code](https://code.visualstudio.com/)
