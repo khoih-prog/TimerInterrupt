@@ -92,6 +92,6 @@
 
 ### Releases v1.0.2
 
-1. Intial releases.
+1. Initial releases.
 
 

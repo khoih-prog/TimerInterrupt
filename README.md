@@ -82,7 +82,7 @@ This library enables you to use Interrupt from Hardware Timers on an Arduino or 
 
 As **Hardware Timers are rare, and very precious assets** of any board, this library now enables you to use up to **16 ISR-based Timers, while consuming only 1 Hardware Timer**. Timers' interval is very long (**ulong millisecs**).
 
-Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long miliseconds) while **the accuracy is nearly perfect** compared to software timers. 
+Now with these new **16 ISR-based timers**, the maximum interval is **practically unlimited** (limited only by unsigned long milliseconds) while **the accuracy is nearly perfect** compared to software timers. 
 
 The most important feature is they're ISR-based timers. Therefore, their executions are **not blocked by bad-behaving functions / tasks**. This important feature is absolutely necessary for mission-critical tasks. 
 
@@ -158,19 +158,6 @@ Another way to install is to:
 2. Download the latest release `TimerInterrupt-master.zip`.
 3. Extract the zip file to `TimerInterrupt-master` directory 
 4. Copy whole `TimerInterrupt-master` folder to Arduino libraries' directory such as `~/Arduino/libraries/`.
-
-### arduino-cli Install
-
-1. Install [arduino-cli](https://github.com/arduino/arduino-cli)
-2. Run the following command.
-
-```
-$ arduino-cli lib install timerinterrupt
-Downloading TimerInterrupt@1.8.0...
-TimerInterrupt@1.8.0 downloaded
-Installing TimerInterrupt@1.8.0...
-Installed TimerInterrupt@1.8.0
-```
 
 ### VS Code & PlatformIO:
 
