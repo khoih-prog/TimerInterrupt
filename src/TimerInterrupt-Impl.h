@@ -48,18 +48,19 @@
 #endif
 
 void TimerInterrupt::init(int8_t timer)
-{    
+{
   // Set timer specific stuff
   // All timers in CTC mode
   // 8 bit timers will require changing prescalar values,
   // whereas 16 bit timers are set to either ck/1 or ck/64 prescalar
-  
+
   //cli();//stop interrupts
   noInterrupts();
-  
+
   switch (timer)
-  {    
-    #if defined(TCCR1A) && defined(TCCR1B) && defined(WGM12)
+  {
+#if defined(TCCR1A) && defined(TCCR1B) && defined(WGM12)
+
     case 1:
       // 16 bit timer
       TCCR1A = 0;
@@ -71,11 +72,12 @@ void TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR1B, CS10, 1);
 
       TISR_LOGWARN(F("T1"));
-      
-      break;
-    #endif
 
-    #if defined(TCCR2A) && defined(TCCR2B)
+      break;
+#endif
+
+#if defined(TCCR2A) && defined(TCCR2B)
+
     case 2:
       // 8 bit timer
       TCCR2A = 0;
@@ -87,11 +89,12 @@ void TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR2B, CS20, 1);
 
       TISR_LOGWARN(F("T2"));
-      
-      break;
-    #endif
 
-    #if defined(TCCR3A) && defined(TCCR3B) &&  defined(TIMSK3)
+      break;
+#endif
+
+#if defined(TCCR3A) && defined(TCCR3B) &&  defined(TIMSK3)
+
     case 3:
       // 16 bit timer
       TCCR3A = 0;
@@ -100,30 +103,32 @@ void TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR3B, CS30, 1);
 
       TISR_LOGWARN(F("T3"));
-      
-      break;
-    #endif  
 
-    #if defined(TCCR4A) && defined(TCCR4B) &&  defined(TIMSK4)
+      break;
+#endif
+
+#if defined(TCCR4A) && defined(TCCR4B) &&  defined(TIMSK4)
+
     case 4:
       // 16 bit timer
       TCCR4A = 0;
       TCCR4B = 0;
-      #if defined(WGM42)
-        bitWrite(TCCR4B, WGM42, 1);
-      #elif defined(CS43)
-        // TODO this may not be correct
-        // atmega32u4
-        bitWrite(TCCR4B, CS43, 1);
-      #endif
+#if defined(WGM42)
+      bitWrite(TCCR4B, WGM42, 1);
+#elif defined(CS43)
+      // TODO this may not be correct
+      // atmega32u4
+      bitWrite(TCCR4B, CS43, 1);
+#endif
       bitWrite(TCCR4B, CS40, 1);
 
       TISR_LOGWARN(F("T4"));
-      
-      break;
-    #endif
 
-    #if defined(TCCR5A) && defined(TCCR5B) &&  defined(TIMSK5)
+      break;
+#endif
+
+#if defined(TCCR5A) && defined(TCCR5B) &&  defined(TIMSK5)
+
     case 5:
       // 16 bit timer
       TCCR5A = 0;
@@ -132,16 +137,16 @@ void TimerInterrupt::init(int8_t timer)
       bitWrite(TCCR5B, CS50, 1);
 
       TISR_LOGWARN(F("T5"));
-      
+
       break;
-    #endif
+#endif
   }
 
   _timer = timer;
 
   //sei();//enable interrupts
   interrupts();
-  
+
 }
 
 void TimerInterrupt::set_OCR()
@@ -172,6 +177,7 @@ void TimerInterrupt::set_OCR()
       break;
 
 #if defined(OCR2A) && defined(TIMSK2) && defined(OCIE2A)
+
     case 2:
       _OCRValueToUse = min(MAX_COUNT_8BIT, _OCRValueRemaining);
       OCR2A = _OCRValueToUse;
@@ -182,6 +188,7 @@ void TimerInterrupt::set_OCR()
 #endif
 
 #if defined(OCR3A) && defined(TIMSK3) && defined(OCIE3A)
+
     case 3:
       _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
       OCR3A = _OCRValueToUse;
@@ -192,14 +199,15 @@ void TimerInterrupt::set_OCR()
 #endif
 
 #if defined(OCR4A) && defined(TIMSK4) && defined(OCIE4A)
+
     case 4:
-    
+
 #if TIMER_INTERRUPT_USING_ATMEGA_32U4
       _OCRValueToUse = min(MAX_COUNT_8BIT, _OCRValueRemaining);
-#else    
+#else
       _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
 #endif
-      
+
       OCR4A = _OCRValueToUse;
       _OCRValueRemaining -= _OCRValueToUse;
 
@@ -208,6 +216,7 @@ void TimerInterrupt::set_OCR()
 #endif
 
 #if defined(OCR5A) && defined(TIMSK5) && defined(OCIE5A)
+
     case 5:
       _OCRValueToUse = min(MAX_COUNT_16BIT, _OCRValueRemaining);
       OCR5A = _OCRValueToUse;
@@ -240,16 +249,16 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
   {
     return false;
   }
-  else      
-  {       
+  else
+  {
     // Calculate the toggle count. Duration must be at least longer then one cycle
     if (duration > 0)
-    {   
+    {
       _toggle_count = frequency * duration / 1000;
 
       TISR_LOGWARN1(F("setFrequency => _toggle_count ="), _toggle_count);
       TISR_LOGWARN3(F("Frequency ="), frequency, F(", duration ="), duration);
-           
+
       if (_toggle_count < 1)
       {
         return false;
@@ -259,27 +268,27 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
     {
       _toggle_count = -1;
     }
-      
+
     //Timer0 and timer2 are 8 bit timers, meaning they can store a maximum counter value of 255.
-    //Timer2 does not have the option of 1024 prescaler, only 1, 8, 32, 64  
+    //Timer2 does not have the option of 1024 prescaler, only 1, 8, 32, 64
     //Timer1 is a 16 bit timer, meaning it can store a maximum counter value of 65535.
     int prescalerIndexStart;
-    
+
     //Use smallest prescaler first, then increase until fits (<255)
     if (_timer != 2)
-    {     
+    {
       if (frequencyLimit > 64)
-        prescalerIndexStart = NO_PRESCALER;        
+        prescalerIndexStart = NO_PRESCALER;
       else if (frequencyLimit > 8)
         prescalerIndexStart = PRESCALER_8;
       else
         prescalerIndexStart = PRESCALER_64;
 
-        
+
       for (int prescalerIndex = prescalerIndexStart; prescalerIndex <= PRESCALER_1024; prescalerIndex++)
       {
         OCRValue = F_CPU / (frequency * prescalerDiv[prescalerIndex]) - 1;
-  
+
         TISR_LOGWARN1(F("Freq * 1000 ="), frequency * 1000);
         TISR_LOGWARN3(F("F_CPU ="), F_CPU, F(", preScalerDiv ="), prescalerDiv[prescalerIndex]);
         TISR_LOGWARN3(F("OCR ="), OCRValue, F(", preScalerIndex ="), prescalerIndex);
@@ -289,23 +298,23 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
         // Use very high frequency (OCRValue / MAX_COUNT_16BIT) around 16 * 1024 to achieve higher accuracy
 #if TIMER_INTERRUPT_USING_ATMEGA_32U4
         uint16_t MAX_COUNT_32U4 = (_timer == 4) ? MAX_COUNT_8BIT : MAX_COUNT_16BIT;
-       
+
         if ( (OCRValue / MAX_COUNT_32U4) < 16384 )
-#else        
+#else
         if ( (OCRValue / MAX_COUNT_16BIT) < 16384 )
-#endif        
+#endif
         {
           _OCRValue           = OCRValue;
           _OCRValueRemaining  = OCRValue;
           _prescalerIndex = prescalerIndex;
-  
+
           TISR_LOGWARN1(F("OK in loop => _OCR ="), _OCRValue);
           TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDiv[_prescalerIndex]);
-             
+
           isSuccess = true;
-         
+
           break;
-        }       
+        }
       }
 
       if (!isSuccess)
@@ -314,28 +323,28 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
         _OCRValue           = OCRValue;
         _OCRValueRemaining  = OCRValue;
         _prescalerIndex = PRESCALER_1024;
-  
+
         TISR_LOGWARN1(F("OK out loop => _OCR ="), _OCRValue);
         TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDiv[_prescalerIndex]);
-      }            
+      }
     }
     else
     {
       if (frequencyLimit > 64)
-        prescalerIndexStart = T2_NO_PRESCALER;        
+        prescalerIndexStart = T2_NO_PRESCALER;
       else if (frequencyLimit > 8)
         prescalerIndexStart = T2_PRESCALER_8;
       else if (frequencyLimit > 2)
-        prescalerIndexStart = T2_PRESCALER_32;        
+        prescalerIndexStart = T2_PRESCALER_32;
       else
         prescalerIndexStart = T2_PRESCALER_64;
-          
+
       // Page 206-207. ATmegal328
-      //8-bit Timer2 has more options up to 1024 prescaler, from 1, 8, 32, 64, 128, 256 and 1024  
+      //8-bit Timer2 has more options up to 1024 prescaler, from 1, 8, 32, 64, 128, 256 and 1024
       for (int prescalerIndex = prescalerIndexStart; prescalerIndex <= T2_PRESCALER_1024; prescalerIndex++)
       {
         OCRValue = F_CPU / (frequency * prescalerDivT2[prescalerIndex]) - 1;
-  
+
         TISR_LOGWARN3(F("F_CPU ="), F_CPU, F(", preScalerDiv ="), prescalerDivT2[prescalerIndex]);
         TISR_LOGWARN3(F("OCR2 ="), OCRValue, F(", preScalerIndex ="), prescalerIndex);
 
@@ -348,14 +357,14 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
           _OCRValueRemaining  = OCRValue;
           // same as prescalarbits
           _prescalerIndex = prescalerIndex;
-  
+
           TISR_LOGWARN1(F("OK in loop => _OCR ="), _OCRValue);
           TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDivT2[_prescalerIndex]);
-          
+
           isSuccess = true;
-          
+
           break;
-        }       
+        }
       }
 
       if (!isSuccess)
@@ -365,10 +374,10 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
         _OCRValueRemaining  = OCRValue;
         // same as prescalarbits
         _prescalerIndex = T2_PRESCALER_1024;
-  
+
         TISR_LOGWARN1(F("OK out loop => _OCR ="), _OCRValue);
         TISR_LOGWARN3(F("_preScalerIndex ="), _prescalerIndex, F(", preScalerDiv ="), prescalerDivT2[_prescalerIndex]);
-      } 
+      }
     }
 
     //cli();//stop interrupts
@@ -379,51 +388,58 @@ bool TimerInterrupt::setFrequency(float frequency, timer_callback_p callback, ui
     _params    = reinterpret_cast<void*>(params);
 
     _timerDone = false;
-          
-    // 8 bit timers from here     
-    #if defined(TCCR2B)
+
+    // 8 bit timers from here
+#if defined(TCCR2B)
+
     if (_timer == 2)
     {
       TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
-      
+
       TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
     }
-    #endif
+
+#endif
 
     // 16 bit timers from here
-    #if defined(TCCR1B)
-    #if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+#if defined(TCCR1B)
+#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+
     if (_timer == 1)
-    #else
+#else
     else if (_timer == 1)
-    #endif
+#endif
     {
       TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-      
+
       TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
     }
-    #endif
-    
-    #if defined(TCCR3B)
+
+#endif
+
+#if defined(TCCR3B)
     else if (_timer == 3)
       TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
-    #endif
-    
-    #if defined(TCCR4B)
+
+#endif
+
+#if defined(TCCR4B)
     else if (_timer == 4)
       TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
-    #endif
-    
-    #if defined(TCCR5B)
+
+#endif
+
+#if defined(TCCR5B)
     else if (_timer == 5)
       TCCR5B = (TCCR5B & andMask) | _prescalerIndex;   //prescalarbits;
-    #endif
-       
+
+#endif
+
     // Set the OCR for the given timer,
     // set the toggle count,
-    // then turn on the interrupts     
+    // then turn on the interrupts
     set_OCR();
-    
+
     //sei();//allow interrupts
     interrupts();
 
@@ -435,55 +451,59 @@ void TimerInterrupt::detachInterrupt(void)
 {
   //cli();//stop interrupts
   noInterrupts();
-  
+
   switch (_timer)
   {
-    #if defined(TIMSK1) && defined(OCIE1A)
+#if defined(TIMSK1) && defined(OCIE1A)
+
     case 1:
       bitWrite(TIMSK1, OCIE1A, 0);
- 
+
       TISR_LOGWARN(F("Disable T1"));
-       
+
       break;
-    #endif
+#endif
 
     case 2:
-      #if defined(TIMSK2) && defined(OCIE2A)
-        bitWrite(TIMSK2, OCIE2A, 0); // disable interrupt
-      #endif
-      
+#if defined(TIMSK2) && defined(OCIE2A)
+      bitWrite(TIMSK2, OCIE2A, 0); // disable interrupt
+#endif
+
       TISR_LOGWARN(F("Disable T2"));
-            
+
       break;
 
 #if defined(TIMSK3) && defined(OCIE3A)
+
     case 3:
       bitWrite(TIMSK3, OCIE3A, 0);
-      
+
       TISR_LOGWARN(F("Disable T3"));
-            
+
       break;
 #endif
 
 #if defined(TIMSK4) && defined(OCIE4A)
+
     case 4:
       bitWrite(TIMSK4, OCIE4A, 0);
 
       TISR_LOGWARN(F("Disable T4"));
-            
+
       break;
 #endif
 
 #if defined(TIMSK5) && defined(OCIE5A)
+
     case 5:
       bitWrite(TIMSK5, OCIE5A, 0);
 
       TISR_LOGWARN(F("Disable T5"));
-            
+
       break;
 #endif
   }
-  
+
   //sei();//allow interrupts
   interrupts();
 }
@@ -503,55 +523,59 @@ void TimerInterrupt::reattachInterrupt(unsigned long duration)
   {
     _toggle_count = -1;
   }
-    
+
   switch (_timer)
   {
 #if defined(TIMSK1) && defined(OCIE1A)
+
     case 1:
       bitWrite(TIMSK1, OCIE1A, 1);
 
       TISR_LOGWARN(F("Enable T1"));
-       
+
       break;
 #endif
 
     case 2:
-      #if defined(TIMSK2) && defined(OCIE2A)
-        bitWrite(TIMSK2, OCIE2A, 1); // enable interrupt
-      #endif
+#if defined(TIMSK2) && defined(OCIE2A)
+      bitWrite(TIMSK2, OCIE2A, 1); // enable interrupt
+#endif
 
       TISR_LOGWARN(F("Enable T2"));
-            
+
       break;
 
 #if defined(TIMSK3) && defined(OCIE3A)
+
     case 3:
       bitWrite(TIMSK3, OCIE3A, 1);
-      
+
       TISR_LOGWARN(F("Enable T3"));
-            
+
       break;
 #endif
 
 #if defined(TIMSK4) && defined(OCIE4A)
+
     case 4:
       bitWrite(TIMSK4, OCIE4A, 1);
 
       TISR_LOGWARN(F("Enable T4"));
-            
+
       break;
 #endif
 
 #if defined(TIMSK5) && defined(OCIE5A)
+
     case 5:
       bitWrite(TIMSK5, OCIE5A, 1);
 
       TISR_LOGWARN(F("Enable T5"));
-            
+
       break;
 #endif
   }
-  
+
   //sei();//allow interrupts
   interrupts();
 }
@@ -560,357 +584,371 @@ void TimerInterrupt::reattachInterrupt(unsigned long duration)
 void TimerInterrupt::pauseTimer(void)
 {
   uint8_t andMask = 0b11111000;
-  
-  //Just clear the CSx2-CSx0. Still keep the count in TCNT and Timer Interrupt mask TIMKSx. 
-  
-  // 8 bit timers from here     
-  #if defined(TCCR2B)
+
+  //Just clear the CSx2-CSx0. Still keep the count in TCNT and Timer Interrupt mask TIMKSx.
+
+  // 8 bit timers from here
+#if defined(TCCR2B)
+
   if (_timer == 2)
   {
     TCCR2B = (TCCR2B & andMask);
 
     TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
   }
-  #endif
-  
+
+#endif
+
   // 16 bit timers from here
-  #if defined(TCCR1B)
-  #if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+#if defined(TCCR1B)
+#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+
   if (_timer == 1)
-  #else
+#else
   else if (_timer == 1)
-  #endif
+#endif
   {
     TCCR1B = (TCCR1B & andMask);
-    
+
     TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
   }
-  #endif
-  
-  #if defined(TCCR3B)
+
+#endif
+
+#if defined(TCCR3B)
   else if (_timer == 3)
     TCCR3B = (TCCR3B & andMask);
-  #endif
-  
-  #if defined(TCCR4B)
+
+#endif
+
+#if defined(TCCR4B)
   else if (_timer == 4)
     TCCR4B = (TCCR4B & andMask);
-  #endif
-  
-  #if defined(TCCR5B)
+
+#endif
+
+#if defined(TCCR5B)
   else if (_timer == 5)
     TCCR5B = (TCCR5B & andMask);
-  #endif   
+
+#endif
 }
 
 // Just reconnect clock source, continue from the current count
 void TimerInterrupt::resumeTimer(void)
 {
   uint8_t andMask = 0b11111000;
-  
-  //Just restore the CSx2-CSx0 stored in _prescalerIndex. Still keep the count in TCNT and Timer Interrupt mask TIMKSx. 
-  // 8 bit timers from here     
-  #if defined(TCCR2B)
+
+  //Just restore the CSx2-CSx0 stored in _prescalerIndex. Still keep the count in TCNT and Timer Interrupt mask TIMKSx.
+  // 8 bit timers from here
+#if defined(TCCR2B)
+
   if (_timer == 2)
   {
     TCCR2B = (TCCR2B & andMask) | _prescalerIndex;   //prescalarbits;
 
     TISR_LOGWARN1(F("TCCR2B ="), TCCR2B);
   }
-  #endif
+
+#endif
 
   // 16 bit timers from here
-  #if defined(TCCR1B)
-  #if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+#if defined(TCCR1B)
+#if ( TIMER_INTERRUPT_USING_ATMEGA_32U4 )
+
   if (_timer == 1)
-  #else
+#else
   else if (_timer == 1)
-  #endif
+#endif
   {
     TCCR1B = (TCCR1B & andMask) | _prescalerIndex;   //prescalarbits;
-    
-    TISR_LOGWARN1(F("TCCR1B ="), TCCR1B); 
+
+    TISR_LOGWARN1(F("TCCR1B ="), TCCR1B);
   }
-  #endif
-  
-  #if defined(TCCR3B)
+
+#endif
+
+#if defined(TCCR3B)
   else if (_timer == 3)
     TCCR3B = (TCCR3B & andMask) | _prescalerIndex;   //prescalarbits;
-  #endif
-  
-  #if defined(TCCR4B)
+
+#endif
+
+#if defined(TCCR4B)
   else if (_timer == 4)
     TCCR4B = (TCCR4B & andMask) | _prescalerIndex;   //prescalarbits;
-  #endif
-  
-  #if defined(TCCR5B)
+
+#endif
+
+#if defined(TCCR5B)
   else if (_timer == 5)
     TCCR5B = (TCCR5B & andMask) | _prescalerIndex;   //prescalarbits;
-  #endif  
+
+#endif
 }
 
 
-#if USE_TIMER_1 
-  #ifndef TIMER1_INSTANTIATED
-    // To force pre-instatiate only once
-    #define TIMER1_INSTANTIATED
-    static TimerInterrupt ITimer1(HW_TIMER_1);
-    
-    // Timer0 is used for micros(), millis(), delay(), etc and can't be used
-    // Pre-instatiate
+#if USE_TIMER_1
+#ifndef TIMER1_INSTANTIATED
+// To force pre-instatiate only once
+#define TIMER1_INSTANTIATED
+static TimerInterrupt ITimer1(HW_TIMER_1);
 
-    ISR(TIMER1_COMPA_vect)
+// Timer0 is used for micros(), millis(), delay(), etc and can't be used
+// Pre-instatiate
+
+ISR(TIMER1_COMPA_vect)
+{
+  long countLocal = ITimer1.getCount();
+
+  if (ITimer1.getTimer() == 1)
+  {
+    if (countLocal != 0)
     {
-      long countLocal = ITimer1.getCount();
-           
-      if (ITimer1.getTimer() == 1)
+      if (ITimer1.checkTimerDone())
       {
-        if (countLocal != 0)
-        {
-          if (ITimer1.checkTimerDone())
-          {
-            TISR_LOGDEBUG3(("T1 callback, _OCRValueRemaining ="), ITimer1.get_OCRValueRemaining(), (", millis ="), millis());
-            
-            ITimer1.callback();
+        TISR_LOGDEBUG3(("T1 callback, _OCRValueRemaining ="), ITimer1.get_OCRValueRemaining(), (", millis ="), millis());
 
-            if (ITimer1.get_OCRValue() > MAX_COUNT_16BIT)
-            {
-              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
-              ITimer1.reload_OCRValue();
-            }
-                 
-            if (countLocal > 0)                  
-              ITimer1.setCount(countLocal - 1);
-          }
-          else
-          {
-            //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
-            // If _OCRValue == 0, flag _timerDone for next cycle  
-            // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
-            ITimer1.adjust_OCRValue();
-          }         
-        }
-        else
+        ITimer1.callback();
+
+        if (ITimer1.get_OCRValue() > MAX_COUNT_16BIT)
         {
-          TISR_LOGWARN(("T1 done"));
-          
-          ITimer1.detachInterrupt();
+          // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+          ITimer1.reload_OCRValue();
         }
+
+        if (countLocal > 0)
+          ITimer1.setCount(countLocal - 1);
+      }
+      else
+      {
+        //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
+        // If _OCRValue == 0, flag _timerDone for next cycle
+        // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
+        ITimer1.adjust_OCRValue();
       }
     }
-    
-  #endif  //#ifndef TIMER1_INSTANTIATED
+    else
+    {
+      TISR_LOGWARN(("T1 done"));
+
+      ITimer1.detachInterrupt();
+    }
+  }
+}
+
+#endif  //#ifndef TIMER1_INSTANTIATED
 #endif    //#if USE_TIMER_1
 
 #if USE_TIMER_2
-  #ifndef TIMER2_INSTANTIATED
-    #define TIMER2_INSTANTIATED
-    static TimerInterrupt ITimer2(HW_TIMER_2);
-    
-    ISR(TIMER2_COMPA_vect)
-    {
-      long countLocal = ITimer2.getCount();
-     
-      if (ITimer2.getTimer() == 2)
-      {
-        if (countLocal != 0)
-        {
-          if (ITimer2.checkTimerDone())
-          {
-            TISR_LOGDEBUG3(("T2 callback, _OCRValueRemaining ="), ITimer2.get_OCRValueRemaining(), (", millis ="), millis());
-             
-            ITimer2.callback();
-            
-            if (ITimer2.get_OCRValue() > MAX_COUNT_8BIT)
-            {
-              // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_8BIT if _OCRValueRemaining > MAX_COUNT_8BIT
-              ITimer2.reload_OCRValue();
-            }
-            
-            if (countLocal > 0)
-             ITimer2.setCount(countLocal - 1);
+#ifndef TIMER2_INSTANTIATED
+#define TIMER2_INSTANTIATED
+static TimerInterrupt ITimer2(HW_TIMER_2);
 
-          }
-          else
-          {           
-            //Deduct _OCRValue by min(MAX_COUNT_8BIT, _OCRValue)
-            // If _OCRValue == 0, flag _timerDone for next cycle
-            ITimer2.adjust_OCRValue();
-          }          
-        }    
-        else
+ISR(TIMER2_COMPA_vect)
+{
+  long countLocal = ITimer2.getCount();
+
+  if (ITimer2.getTimer() == 2)
+  {
+    if (countLocal != 0)
+    {
+      if (ITimer2.checkTimerDone())
+      {
+        TISR_LOGDEBUG3(("T2 callback, _OCRValueRemaining ="), ITimer2.get_OCRValueRemaining(), (", millis ="), millis());
+
+        ITimer2.callback();
+
+        if (ITimer2.get_OCRValue() > MAX_COUNT_8BIT)
         {
-          TISR_LOGWARN(("T2 done"));
-          
-          ITimer2.detachInterrupt();
+          // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_8BIT if _OCRValueRemaining > MAX_COUNT_8BIT
+          ITimer2.reload_OCRValue();
         }
+
+        if (countLocal > 0)
+          ITimer2.setCount(countLocal - 1);
+
       }
-    }    
-  #endif  //#ifndef TIMER2_INSTANTIATED
+      else
+      {
+        //Deduct _OCRValue by min(MAX_COUNT_8BIT, _OCRValue)
+        // If _OCRValue == 0, flag _timerDone for next cycle
+        ITimer2.adjust_OCRValue();
+      }
+    }
+    else
+    {
+      TISR_LOGWARN(("T2 done"));
+
+      ITimer2.detachInterrupt();
+    }
+  }
+}
+#endif  //#ifndef TIMER2_INSTANTIATED
 #endif    //#if USE_TIMER_2
 
 #if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
 
-  // Pre-instatiate
-  #if USE_TIMER_3
-    #ifndef TIMER3_INSTANTIATED
-      // To force pre-instatiate only once
-      #define TIMER3_INSTANTIATED
-      static TimerInterrupt ITimer3(HW_TIMER_3);
-      
-      ISR(TIMER3_COMPA_vect)
-      {
-        long countLocal = ITimer3.getCount();
-        
-        if (ITimer3.getTimer() == 3)
-        {
-          if (countLocal != 0)
-          {
-            if (ITimer3.checkTimerDone())
-            { 
-              TISR_LOGDEBUG3(("T3 callback, _OCRValueRemaining ="), ITimer3.get_OCRValueRemaining(), (", millis ="), millis());
-              
-              ITimer3.callback();
+// Pre-instatiate
+#if USE_TIMER_3
+#ifndef TIMER3_INSTANTIATED
+// To force pre-instatiate only once
+#define TIMER3_INSTANTIATED
+static TimerInterrupt ITimer3(HW_TIMER_3);
 
-              if (ITimer3.get_OCRValue() > MAX_COUNT_16BIT)
-              {
-                // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
-                ITimer3.reload_OCRValue();
-              }
-                           
-              if (countLocal > 0)
-                ITimer3.setCount(countLocal - 1);     
-            }
-            else
-            {
-              //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
-              // If _OCRValue == 0, flag _timerDone for next cycle          
-              // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
-              ITimer3.adjust_OCRValue();
-            }
-          }
-          else
-          {
-            TISR_LOGWARN(("T3 done"));
-            
-            ITimer3.detachInterrupt();
-          }
+ISR(TIMER3_COMPA_vect)
+{
+  long countLocal = ITimer3.getCount();
+
+  if (ITimer3.getTimer() == 3)
+  {
+    if (countLocal != 0)
+    {
+      if (ITimer3.checkTimerDone())
+      {
+        TISR_LOGDEBUG3(("T3 callback, _OCRValueRemaining ="), ITimer3.get_OCRValueRemaining(), (", millis ="), millis());
+
+        ITimer3.callback();
+
+        if (ITimer3.get_OCRValue() > MAX_COUNT_16BIT)
+        {
+          // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+          ITimer3.reload_OCRValue();
         }
-      }  
-      
-    #endif  //#ifndef TIMER3_INSTANTIATED
-  #endif    //#if USE_TIMER_3
+
+        if (countLocal > 0)
+          ITimer3.setCount(countLocal - 1);
+      }
+      else
+      {
+        //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
+        // If _OCRValue == 0, flag _timerDone for next cycle
+        // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
+        ITimer3.adjust_OCRValue();
+      }
+    }
+    else
+    {
+      TISR_LOGWARN(("T3 done"));
+
+      ITimer3.detachInterrupt();
+    }
+  }
+}
+
+#endif  //#ifndef TIMER3_INSTANTIATED
+#endif    //#if USE_TIMER_3
 
 #endif      //#if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
 
 #if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
 
-  // Even 32u4 Timer4 has 10-bit counter, we use only 8-bit to simplify by not using 2-bit High Byte Register (TC4H)
-  // Check 15.2.2 Accuracy, page 141 of ATmega16U4/32U4 [DATASHEET]
+// Even 32u4 Timer4 has 10-bit counter, we use only 8-bit to simplify by not using 2-bit High Byte Register (TC4H)
+// Check 15.2.2 Accuracy, page 141 of ATmega16U4/32U4 [DATASHEET]
 
-  #if USE_TIMER_4
-    #ifndef TIMER4_INSTANTIATED
-      // To force pre-instatiate only once
-      #define TIMER4_INSTANTIATED
-      static TimerInterrupt ITimer4(HW_TIMER_4);
-      
-      ISR(TIMER4_COMPA_vect)
+#if USE_TIMER_4
+#ifndef TIMER4_INSTANTIATED
+// To force pre-instatiate only once
+#define TIMER4_INSTANTIATED
+static TimerInterrupt ITimer4(HW_TIMER_4);
+
+ISR(TIMER4_COMPA_vect)
+{
+  long countLocal = ITimer4.getCount();
+
+  if (ITimer4.getTimer() == 4)
+  {
+    if (countLocal != 0)
+    {
+      if (ITimer4.checkTimerDone())
       {
-        long countLocal = ITimer4.getCount();
-                
-        if (ITimer4.getTimer() == 4)
+        TISR_LOGDEBUG3(("T4 callback, _OCRValueRemaining ="), ITimer4.get_OCRValueRemaining(), (", millis ="), millis());
+
+        ITimer4.callback();
+
+        if (ITimer4.get_OCRValue() > MAX_COUNT_16BIT)
         {
-          if (countLocal != 0)
-          {
-            if (ITimer4.checkTimerDone())
-            {  
-              TISR_LOGDEBUG3(("T4 callback, _OCRValueRemaining ="), ITimer4.get_OCRValueRemaining(), (", millis ="), millis());
-              
-              ITimer4.callback();
-              
-              if (ITimer4.get_OCRValue() > MAX_COUNT_16BIT)
-              {
-                // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
-                ITimer4.reload_OCRValue();
-              }
-                           
-              if (countLocal > 0)
-                ITimer4.setCount(countLocal - 1);       
-            }
-            else
-            {
-              //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue) or min(MAX_COUNT_8BIT, _OCRValue)
-              // If _OCRValue == 0, flag _timerDone for next cycle     
-              // If last one (_OCRValueRemaining < MAX_COUNT_16BIT / MAX_COUNT_8BIT) => load _OCR register _OCRValueRemaining
-              ITimer4.adjust_OCRValue();
-            }
-          }
-          else
-          {
-            TISR_LOGWARN(("T4 done"));
-            
-            ITimer4.detachInterrupt();
-          }
+          // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+          ITimer4.reload_OCRValue();
         }
+
+        if (countLocal > 0)
+          ITimer4.setCount(countLocal - 1);
       }
-      
-      
-    #endif  //#ifndef TIMER4_INSTANTIATED
-  #endif    //#if USE_TIMER_4
+      else
+      {
+        //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue) or min(MAX_COUNT_8BIT, _OCRValue)
+        // If _OCRValue == 0, flag _timerDone for next cycle
+        // If last one (_OCRValueRemaining < MAX_COUNT_16BIT / MAX_COUNT_8BIT) => load _OCR register _OCRValueRemaining
+        ITimer4.adjust_OCRValue();
+      }
+    }
+    else
+    {
+      TISR_LOGWARN(("T4 done"));
+
+      ITimer4.detachInterrupt();
+    }
+  }
+}
+
+
+#endif  //#ifndef TIMER4_INSTANTIATED
+#endif    //#if USE_TIMER_4
 
 #endif      //#if (TIMER_INTERRUPT_USING_ATMEGA2560 || TIMER_INTERRUPT_USING_ATMEGA_32U4)
 
 #if TIMER_INTERRUPT_USING_ATMEGA2560
-  
-  #if USE_TIMER_5
-    #ifndef TIMER5_INSTANTIATED
-      // To force pre-instatiate only once
-      #define TIMER5_INSTANTIATED
-      static TimerInterrupt ITimer5(HW_TIMER_5);
-      
-      ISR(TIMER5_COMPA_vect)
-      {
-        long countLocal = ITimer5.getCount();
-                
-        if (ITimer5.getTimer() == 5)
-        {
-          if (countLocal != 0)
-          {
-            if (ITimer5.checkTimerDone())
-            {
-              TISR_LOGDEBUG3(("T5 callback, _OCRValueRemaining ="), ITimer5.get_OCRValueRemaining(), (", millis ="), millis());
-              
-              ITimer5.callback();
 
-              if (ITimer5.get_OCRValue() > MAX_COUNT_16BIT)
-              {
-                // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
-                ITimer5.reload_OCRValue();
-              }
-                            
-              if (countLocal > 0)
-                ITimer5.setCount(countLocal - 1);
-            }
-            else
-            {
-              //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
-              // If _OCRValue == 0, flag _timerDone for next cycle           
-              // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
-              ITimer5.adjust_OCRValue();
-            }
-          }
-          else
-          {
-            TISR_LOGWARN(("T5 done"));
-            
-            ITimer5.detachInterrupt();
-          }
+#if USE_TIMER_5
+#ifndef TIMER5_INSTANTIATED
+// To force pre-instatiate only once
+#define TIMER5_INSTANTIATED
+static TimerInterrupt ITimer5(HW_TIMER_5);
+
+ISR(TIMER5_COMPA_vect)
+{
+  long countLocal = ITimer5.getCount();
+
+  if (ITimer5.getTimer() == 5)
+  {
+    if (countLocal != 0)
+    {
+      if (ITimer5.checkTimerDone())
+      {
+        TISR_LOGDEBUG3(("T5 callback, _OCRValueRemaining ="), ITimer5.get_OCRValueRemaining(), (", millis ="), millis());
+
+        ITimer5.callback();
+
+        if (ITimer5.get_OCRValue() > MAX_COUNT_16BIT)
+        {
+          // To reload _OCRValueRemaining as well as _OCR register to MAX_COUNT_16BIT if _OCRValueRemaining > MAX_COUNT_16BIT
+          ITimer5.reload_OCRValue();
         }
+
+        if (countLocal > 0)
+          ITimer5.setCount(countLocal - 1);
       }
-          
-    #endif  //#ifndef TIMER5_INSTANTIATED
-  #endif    //#if USE_TIMER_5
-  
+      else
+      {
+        //Deduct _OCRValue by min(MAX_COUNT_16BIT, _OCRValue)
+        // If _OCRValue == 0, flag _timerDone for next cycle
+        // If last one (_OCRValueRemaining < MAX_COUNT_16BIT) => load _OCR register _OCRValueRemaining
+        ITimer5.adjust_OCRValue();
+      }
+    }
+    else
+    {
+      TISR_LOGWARN(("T5 done"));
+
+      ITimer5.detachInterrupt();
+    }
+  }
+}
+
+#endif  //#ifndef TIMER5_INSTANTIATED
+#endif    //#if USE_TIMER_5
+
 #endif      //#if TIMER_INTERRUPT_USING_ATMEGA2560
 
 #endif // TimerInterrupt_Impl_h
